@@ -7,4 +7,4 @@ node_modules
 .env
 !.env.template
 .vercel
-.react-router
+.react-router.playwright-mcp/
