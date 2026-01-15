@@ -2,7 +2,37 @@ import {ArrowRight} from 'lucide-react'
 import {useCallback, useRef, useState} from 'react'
 import {Link} from 'react-router'
 
-export function BeforeAfterSection() {
+interface BeforeAfterSectionProps {
+  headline?: string
+  subheadline?: string
+  project?: {
+    _id: string
+    title: string
+    slug: string
+    beforeImage?: {asset: {_ref: string}}
+    afterImage?: {asset: {_ref: string}}
+    description: string
+    location: string
+    projectType: string
+  }
+}
+
+const defaultProject = {
+  _id: 'default',
+  title: 'Pacific Heights Victorian',
+  slug: 'pacific-heights-victorian',
+  beforeImage: undefined,
+  afterImage: undefined,
+  description: 'Complete home renovation',
+  location: 'San Francisco, CA',
+  projectType: 'Full Renovation',
+}
+
+export function BeforeAfterSection({
+  headline,
+  subheadline = 'From outdated to outstanding. Drag the slider to see how we transform properties into stunning homes.',
+  project = defaultProject,
+}: BeforeAfterSectionProps) {
   const [sliderPosition, setSliderPosition] = useState(50)
   const containerRef = useRef<HTMLDivElement>(null)
   const isDragging = useRef(false)
@@ -43,13 +73,16 @@ export function BeforeAfterSection() {
             Our Transformations
           </p>
           <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl text-[#1a1a1a] mb-6">
-            See The Difference
-            <br />
-            <span className="text-[#c9a961]">We Make</span>
+            {headline || (
+              <>
+                See The Difference
+                <br />
+                <span className="text-[#c9a961]">We Make</span>
+              </>
+            )}
           </h2>
           <p className="text-gray-600 text-lg">
-            From outdated to outstanding. Drag the slider to see how we
-            transform properties into stunning homes.
+            {subheadline}
           </p>
         </div>
 
@@ -140,10 +173,10 @@ export function BeforeAfterSection() {
           <div className="mt-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <h3 className="font-display text-2xl text-[#1a1a1a] mb-1">
-                Pacific Heights Victorian
+                {project.title}
               </h3>
               <p className="text-gray-500">
-                Complete home renovation • San Francisco, CA
+                {project.projectType} • {project.location}
               </p>
             </div>
             <Link

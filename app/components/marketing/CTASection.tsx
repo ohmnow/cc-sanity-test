@@ -1,7 +1,17 @@
 import {ArrowRight} from 'lucide-react'
 import {Link} from 'react-router'
 
-export function CTASection() {
+interface CTASectionProps {
+  headline?: string
+  subheadline?: string
+  cta?: {text: string; url: string}
+}
+
+export function CTASection({
+  headline,
+  subheadline = "Whether you're buying, selling, or investing, our team is here to guide you every step of the way.",
+  cta = {text: 'Get Started Today', url: '/get-started'},
+}: CTASectionProps) {
   return (
     <section className="py-24 bg-[#1a1a1a] relative overflow-hidden">
       {/* Background Pattern */}
@@ -28,24 +38,27 @@ export function CTASection() {
 
           {/* Headline */}
           <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl xl:text-6xl text-white mb-6 leading-tight">
-            Ready to Transform Your
-            <br />
-            <span className="text-[#c9a961]">Real Estate Dreams?</span>
+            {headline || (
+              <>
+                Ready to Transform Your
+                <br />
+                <span className="text-[#c9a961]">Real Estate Dreams?</span>
+              </>
+            )}
           </h2>
 
           {/* Description */}
           <p className="text-white/70 text-lg sm:text-xl mb-10 max-w-xl mx-auto">
-            Whether you&apos;re buying, selling, or investing, our team is here
-            to guide you every step of the way.
+            {subheadline}
           </p>
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
-              to="/get-started"
+              to={cta.url}
               className="btn-gold px-10 py-4 rounded inline-flex items-center gap-2 text-base font-semibold"
             >
-              Get Started Today
+              {cta.text}
               <ArrowRight size={18} />
             </Link>
             <Link

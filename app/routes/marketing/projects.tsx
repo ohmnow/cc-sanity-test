@@ -1,6 +1,36 @@
 import {ArrowRight, Calendar, MapPin, Maximize} from 'lucide-react'
 import {useCallback, useRef, useState} from 'react'
-import {Link} from 'react-router'
+import {Link, useLoaderData} from 'react-router'
+
+import {loadQuery} from '~/sanity/loader.server'
+import {loadQueryOptions} from '~/sanity/loadQueryOptions.server'
+import {PROJECTS_QUERY} from '~/sanity/queries'
+import type {Route} from './+types/projects'
+
+interface SanityProject {
+  _id: string
+  title: string
+  slug: string
+  beforeImage?: {asset: {_ref: string}}
+  afterImage?: {asset: {_ref: string}}
+  description: string
+  projectType: string
+  location: string
+  completedDate?: string
+  stats?: Array<{label: string; value: string}>
+  roi?: number
+  featured?: boolean
+}
+
+export async function loader({request}: Route.LoaderArgs) {
+  const {options} = await loadQueryOptions(request.headers)
+  const {data: projects} = await loadQuery<SanityProject[]>(
+    PROJECTS_QUERY,
+    {},
+    options
+  )
+  return {projects: projects || []}
+}
 
 interface Project {
   id: number
@@ -18,7 +48,7 @@ interface Project {
   }[]
 }
 
-const projects: Project[] = [
+const defaultProjects: Project[] = [
   {
     id: 1,
     title: 'Pacific Heights Victorian',
@@ -218,6 +248,36 @@ function BeforeAfterSlider({
 }
 
 export default function Projects() {
+  const {projects: sanityProjects} = useLoaderData<typeof loader>()
+
+  // Transform Sanity data to component format, falling back to defaults
+  const projects = sanityProjects.length > 0
+    ? sanityProjects.map((p) => ({
+        id: p._id,
+        title: p.title,
+        slug: p.slug,
+        location: p.location,
+        type: p.projectType,
+        sqft: '0',  // Not in current schema
+        completedDate: p.completedDate
+          ? new Date(p.completedDate).toLocaleDateString('en-US', {
+              month: 'long',
+              year: 'numeric',
+            })
+          : 'Recent',
+        description: p.description,
+        beforeImage:
+          'https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?auto=format&fit=crop&w=2000&q=80',
+        afterImage:
+          'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=2000&q=80',
+        stats: p.stats || [
+          {label: 'ROI', value: p.roi ? `${p.roi}%` : '35%'},
+          {label: 'Timeline', value: '6 months'},
+          {label: 'Quality', value: 'Premium'},
+        ],
+      }))
+    : defaultProjects
+
   return (
     <div className="bg-white">
       {/* Hero Section */}

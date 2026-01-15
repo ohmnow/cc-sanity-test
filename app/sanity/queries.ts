@@ -1,7 +1,7 @@
 import groq from 'groq'
 
-// Homepage singleton query
-export const HOMEPAGE_QUERY = groq`*[_id == "homepage"][0]{
+// Homepage singleton query - fetches all homepage data with expanded references
+export const HOMEPAGE_QUERY = groq`*[_type == "homepage"][0]{
   announcementBar,
   heroHeadline,
   heroSubheadline,
@@ -13,9 +13,13 @@ export const HOMEPAGE_QUERY = groq`*[_id == "homepage"][0]{
   "featuredServices": featuredServices[]->{
     _id,
     title,
-    slug,
+    "slug": slug.current,
     shortDescription,
-    icon
+    icon,
+    category,
+    ctaText,
+    ctaLink,
+    features
   },
   statsHeadline,
   stats,
@@ -24,10 +28,12 @@ export const HOMEPAGE_QUERY = groq`*[_id == "homepage"][0]{
   "featuredProject": featuredProject->{
     _id,
     title,
-    slug,
+    "slug": slug.current,
     beforeImage,
     afterImage,
-    shortDescription
+    description,
+    location,
+    projectType
   },
   testimonialsHeadline,
   testimonialsSubheadline,
@@ -44,13 +50,13 @@ export const HOMEPAGE_QUERY = groq`*[_id == "homepage"][0]{
   "featuredProperties": featuredProperties[]->{
     _id,
     title,
-    slug,
+    "slug": slug.current,
     price,
     address,
     bedrooms,
     bathrooms,
     squareFeet,
-    featuredImage,
+    mainImage,
     status
   },
   ctaHeadline,
@@ -58,19 +64,21 @@ export const HOMEPAGE_QUERY = groq`*[_id == "homepage"][0]{
   ctaButton
 }`
 
-// Site settings query
-export const SITE_SETTINGS_QUERY = groq`*[_id == "siteSettings"][0]{
+// Site settings singleton query
+export const SITE_SETTINGS_QUERY = groq`*[_type == "siteSettings"][0]{
   siteName,
-  siteDescription,
+  tagline,
   logo,
-  contactEmail,
-  contactPhone,
-  address,
-  socialLinks
+  announcementBar,
+  contact,
+  social,
+  footerText,
+  footerLinks,
+  stats
 }`
 
 // Properties queries
-export const PROPERTIES_QUERY = groq`*[_type == "property"] | order(publishedAt desc) {
+export const PROPERTIES_QUERY = groq`*[_type == "property"] | order(_createdAt desc) {
   _id,
   title,
   "slug": slug.current,
@@ -79,26 +87,40 @@ export const PROPERTIES_QUERY = groq`*[_type == "property"] | order(publishedAt 
   bedrooms,
   bathrooms,
   squareFeet,
-  featuredImage,
+  mainImage,
   status,
-  propertyType
+  propertyType,
+  features,
+  yearBuilt
 }`
 
 export const PROPERTY_QUERY = groq`*[_type == "property" && slug.current == $slug][0]{
   ...,
-  "slug": slug.current
+  "slug": slug.current,
+  "agent": agent->{
+    _id,
+    name,
+    role,
+    image,
+    email,
+    phone
+  }
 }`
 
 // Projects queries
-export const PROJECTS_QUERY = groq`*[_type == "project"] | order(completionDate desc) {
+export const PROJECTS_QUERY = groq`*[_type == "project"] | order(completedDate desc) {
   _id,
   title,
   "slug": slug.current,
   beforeImage,
   afterImage,
-  shortDescription,
+  description,
   projectType,
-  completionDate
+  location,
+  completedDate,
+  stats,
+  roi,
+  featured
 }`
 
 export const PROJECT_QUERY = groq`*[_type == "project" && slug.current == $slug][0]{
@@ -112,7 +134,11 @@ export const SERVICES_QUERY = groq`*[_type == "service"] | order(order asc) {
   title,
   "slug": slug.current,
   shortDescription,
-  icon
+  icon,
+  category,
+  features,
+  ctaText,
+  ctaLink
 }`
 
 export const SERVICE_QUERY = groq`*[_type == "service" && slug.current == $slug][0]{
@@ -121,13 +147,14 @@ export const SERVICE_QUERY = groq`*[_type == "service" && slug.current == $slug]
 }`
 
 // Testimonials query
-export const TESTIMONIALS_QUERY = groq`*[_type == "testimonial"] | order(date desc) {
+export const TESTIMONIALS_QUERY = groq`*[_type == "testimonial"] | order(order asc) {
   _id,
   clientName,
   clientTitle,
   quote,
   rating,
   clientImage,
+  serviceType,
   featured
 }`
 
@@ -135,11 +162,15 @@ export const TESTIMONIALS_QUERY = groq`*[_type == "testimonial"] | order(date de
 export const TEAM_MEMBERS_QUERY = groq`*[_type == "teamMember"] | order(order asc) {
   _id,
   name,
+  "slug": slug.current,
   role,
-  bio,
-  photo,
+  shortBio,
+  image,
   email,
-  phone
+  phone,
+  licenseNumber,
+  specialties,
+  social
 }`
 
 // Page query (for dynamic pages)

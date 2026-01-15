@@ -29,5 +29,6 @@ export default [
     route('og', './routes/resource/og.ts'),
     route('preview', './routes/resource/preview.ts'),
     route('toggle-theme', './routes/resource/toggle-theme.ts'),
+    route('lead', './routes/resource/lead.ts'),
   ]),
 ] satisfies RouteConfig

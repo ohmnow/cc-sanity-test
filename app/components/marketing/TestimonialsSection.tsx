@@ -1,46 +1,55 @@
 import {ChevronLeft, ChevronRight, Quote} from 'lucide-react'
 import {useState} from 'react'
 
-const testimonials = [
+const defaultTestimonials = [
   {
-    id: 1,
+    _id: '1',
     quote:
       "Golden Gate Home Advisors made selling our family home an incredibly smooth experience. Their market knowledge and negotiation skills got us 15% over asking price. I couldn't recommend them more highly.",
-    author: 'Sarah & Michael Chen',
-    role: 'Home Sellers',
-    location: 'Pacific Heights',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+    clientName: 'Sarah & Michael Chen',
+    clientTitle: 'Home Sellers, Pacific Heights',
   },
   {
-    id: 2,
+    _id: '2',
     quote:
       "As first-time buyers in a competitive market, we felt completely supported throughout the entire process. They found us our dream home and guided us through every step with patience and expertise.",
-    author: 'David Park',
-    role: 'First-Time Buyer',
-    location: 'Russian Hill',
-    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80',
+    clientName: 'David Park',
+    clientTitle: 'First-Time Buyer, Russian Hill',
   },
   {
-    id: 3,
+    _id: '3',
     quote:
       "I've worked with the Golden Gate team on multiple investment properties. Their renovation expertise and deal analysis have been invaluable to building my portfolio. They truly understand investor needs.",
-    author: 'Jennifer Williams',
-    role: 'Real Estate Investor',
-    location: 'Marina District',
-    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=200&q=80',
+    clientName: 'Jennifer Williams',
+    clientTitle: 'Real Estate Investor, Marina District',
   },
   {
-    id: 4,
+    _id: '4',
     quote:
       "The before and after transformation of our investment property was remarkable. The team's vision and execution exceeded our expectations, and we achieved a 40% ROI on the renovation.",
-    author: 'Robert & Lisa Thompson',
-    role: 'Property Developers',
-    location: 'Noe Valley',
-    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+    clientName: 'Robert & Lisa Thompson',
+    clientTitle: 'Property Developers, Noe Valley',
   },
 ]
 
-export function TestimonialsSection() {
+interface TestimonialsSectionProps {
+  headline?: string
+  subheadline?: string
+  testimonials?: Array<{
+    _id: string
+    quote: string
+    clientName: string
+    clientTitle: string
+    rating?: number
+    clientImage?: {asset: {_ref: string}}
+  }>
+}
+
+export function TestimonialsSection({
+  headline = 'What Our Clients Say',
+  subheadline,
+  testimonials = defaultTestimonials,
+}: TestimonialsSectionProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
 
   const nextTestimonial = () => {
@@ -85,19 +94,16 @@ export function TestimonialsSection() {
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
                 {/* Author Info */}
                 <div className="flex items-center gap-4">
-                  <img
-                    src={currentTestimonial.image}
-                    alt={currentTestimonial.author}
-                    className="w-16 h-16 rounded-full object-cover border-2 border-[#c9a961]"
-                  />
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#c9a961] to-[#8b7355] border-2 border-[#c9a961] flex items-center justify-center">
+                    <span className="text-white text-xl font-display">
+                      {currentTestimonial.clientName?.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                    </span>
+                  </div>
                   <div>
                     <p className="text-white font-semibold text-lg">
-                      {currentTestimonial.author}
+                      {currentTestimonial.clientName}
                     </p>
-                    <p className="text-[#c9a961]">{currentTestimonial.role}</p>
-                    <p className="text-gray-400 text-sm">
-                      {currentTestimonial.location}
-                    </p>
+                    <p className="text-[#c9a961]">{currentTestimonial.clientTitle}</p>
                   </div>
                 </div>
 

@@ -1,7 +1,36 @@
 import {ArrowRight, Play} from 'lucide-react'
 import {Link} from 'react-router'
 
-export function HeroSection() {
+interface HeroSectionProps {
+  headline?: string
+  subheadline?: string
+  primaryCta?: {text: string; url: string}
+  secondaryCta?: {text: string; url: string}
+}
+
+export function HeroSection({
+  headline = 'Transform Your Real Estate Vision Into Reality',
+  subheadline = "Whether you're buying, selling, or investing, our team of experts guides you through every step with personalized service and unmatched market expertise.",
+  primaryCta = {text: 'Get Started', url: '/get-started'},
+  secondaryCta = {text: 'View Our Projects', url: '/projects'},
+}: HeroSectionProps) {
+  // Split headline for styling if it contains specific text
+  const renderHeadline = () => {
+    if (headline.includes('Real Estate Vision')) {
+      const parts = headline.split('Real Estate Vision')
+      return (
+        <>
+          {parts[0]}
+          <br />
+          <span className="text-[#c9a961]">Real Estate Vision</span>
+          <br />
+          {parts[1]}
+        </>
+      )
+    }
+    return headline
+  }
+
   return (
     <section className="relative min-h-screen flex items-center bg-[#1a1a1a]">
       {/* Background Image with Overlay */}
@@ -24,35 +53,29 @@ export function HeroSection() {
 
           {/* Main Headline */}
           <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl xl:text-7xl text-white leading-tight mb-6 animate-fade-in-up opacity-0 delay-100">
-            Transform Your
-            <br />
-            <span className="text-[#c9a961]">Real Estate Vision</span>
-            <br />
-            Into Reality
+            {renderHeadline()}
           </h1>
 
           {/* Subheadline */}
           <p className="text-white/80 text-lg sm:text-xl leading-relaxed mb-10 max-w-xl animate-fade-in-up opacity-0 delay-200">
-            Whether you&apos;re buying, selling, or investing, our team of
-            experts guides you through every step with personalized service and
-            unmatched market expertise.
+            {subheadline}
           </p>
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up opacity-0 delay-300">
             <Link
-              to="/get-started"
+              to={primaryCta.url}
               className="btn-gold px-8 py-4 rounded inline-flex items-center justify-center gap-2 text-base font-semibold"
             >
-              Get Started
+              {primaryCta.text}
               <ArrowRight size={18} />
             </Link>
             <Link
-              to="/projects"
+              to={secondaryCta.url}
               className="btn-outline px-8 py-4 rounded inline-flex items-center justify-center gap-2 text-base font-medium"
             >
               <Play size={18} />
-              View Our Projects
+              {secondaryCta.text}
             </Link>
           </div>
 
