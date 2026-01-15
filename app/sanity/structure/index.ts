@@ -1,4 +1,15 @@
-import {Disc, Home, Tags, Users} from 'lucide-react'
+import {
+  Building2,
+  ClipboardList,
+  Cog,
+  FileText,
+  HandCoins,
+  Home,
+  LayoutTemplate,
+  MessageSquareQuote,
+  Users,
+  Wrench,
+} from 'lucide-react'
 import type {
   DefaultDocumentNodeResolver,
   StructureResolver,
@@ -12,19 +23,68 @@ export const structure: StructureResolver = (S) =>
     .id('root')
     .title('Content')
     .items([
-      // Singleton, home page curation
+      // Homepage (Singleton)
       S.listItem()
         .icon(Home)
-        .id('home')
-        .schemaType('home')
-        .title('Home')
-        .child(S.editor().id('home').schemaType('home').documentId('home')),
+        .id('homepage')
+        .schemaType('homepage')
+        .title('Homepage')
+        .child(
+          S.editor()
+            .id('homepage')
+            .schemaType('homepage')
+            .documentId('homepage')
+        ),
+
+      // Content Pages
+      S.documentTypeListItem('page').title('Pages').icon(LayoutTemplate),
       S.divider(),
-      // Document lists
-      S.documentTypeListItem('record').title('Records').icon(Disc),
-      S.documentTypeListItem('artist').title('Artists').icon(Users),
+
+      // Site Settings (Singleton)
+      S.listItem()
+        .icon(Cog)
+        .id('siteSettings')
+        .schemaType('siteSettings')
+        .title('Site Settings')
+        .child(
+          S.editor()
+            .id('siteSettings')
+            .schemaType('siteSettings')
+            .documentId('siteSettings')
+        ),
       S.divider(),
-      S.documentTypeListItem('genre').title('Genres').icon(Tags),
+
+      // Golden Gate Home Advisors Content
+      S.documentTypeListItem('property').title('Properties').icon(Building2),
+      S.documentTypeListItem('project').title('Projects').icon(Wrench),
+      S.documentTypeListItem('testimonial')
+        .title('Testimonials')
+        .icon(MessageSquareQuote),
+      S.documentTypeListItem('teamMember').title('Team Members').icon(Users),
+      S.documentTypeListItem('service').title('Services').icon(HandCoins),
+      S.divider(),
+
+      // Leads & CRM
+      S.documentTypeListItem('lead').title('Leads').icon(ClipboardList),
+      S.divider(),
+
+      // Investor Portal
+      S.listItem()
+        .title('Investor Portal')
+        .icon(FileText)
+        .child(
+          S.list()
+            .title('Investor Portal')
+            .items([
+              S.documentTypeListItem('investor').title('Investors').icon(Users),
+              S.documentTypeListItem('prospectus')
+                .title('Prospectuses')
+                .icon(FileText),
+              S.documentTypeListItem('letterOfIntent')
+                .title('Letters of Intent')
+                .icon(ClipboardList),
+            ])
+        ),
     ])
 
 export const defaultDocumentNode: DefaultDocumentNodeResolver = (
@@ -39,9 +99,9 @@ export const defaultDocumentNode: DefaultDocumentNodeResolver = (
     .title('OG Preview')
 
   switch (schemaType) {
-    case `home`:
-      return S.document().views([S.view.form()])
-    case `record`:
+    case `page`:
+    case `property`:
+    case `project`:
       return S.document().views([S.view.form(), OGPreviewView])
     default:
       return S.document().views([S.view.form()])
