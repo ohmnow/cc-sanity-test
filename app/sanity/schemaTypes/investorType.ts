@@ -8,6 +8,14 @@ export const investorType = defineType({
   icon: UserIcon,
   fields: [
     defineField({
+      name: 'clerkId',
+      title: 'Clerk User ID',
+      type: 'string',
+      description: 'Links to Clerk authentication system',
+      readOnly: true,
+      hidden: true,
+    }),
+    defineField({
       name: 'name',
       title: 'Full Name',
       type: 'string',

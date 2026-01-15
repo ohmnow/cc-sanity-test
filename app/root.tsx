@@ -1,3 +1,5 @@
+import {ClerkProvider} from '@clerk/react-router'
+import {clerkMiddleware, rootAuthLoader} from '@clerk/react-router/server'
 import {
   data,
   isRouteErrorResponse,
@@ -16,6 +18,14 @@ import {themePreference} from '~/types/themePreference'
 import '~/styles/app.css'
 
 import type {Route} from './+types/root'
+
+// Check if Clerk is configured
+const isClerkConfigured = Boolean(process.env.CLERK_SECRET_KEY)
+
+// Clerk middleware for auth (only if configured)
+export const middleware: Route.MiddlewareFunction[] = isClerkConfigured
+  ? [clerkMiddleware()]
+  : []
 
 export const links: Route.LinksFunction = () => {
   return [
@@ -37,7 +47,19 @@ export const links: Route.LinksFunction = () => {
   ]
 }
 
-export const loader = async ({request}: Route.LoaderArgs) => {
+export const loader = async (args: Route.LoaderArgs) => {
+  // If Clerk is configured, use rootAuthLoader
+  if (isClerkConfigured) {
+    return rootAuthLoader(args, async ({request}) => {
+      return getLoaderData(request)
+    })
+  }
+
+  // Otherwise, just return the basic loader data without auth
+  return getLoaderData(args.request)
+}
+
+async function getLoaderData(request: Request) {
   // Dark/light mode
   const cookieHeader = request.headers.get('Cookie')
   const cookieValue = (await themePreferenceCookie.parse(cookieHeader)) || {}
@@ -45,19 +67,23 @@ export const loader = async ({request}: Route.LoaderArgs) => {
   const bodyClassNames = getBodyClassNames(theme)
   const {projectId, dataset, apiVersion} = projectDetails()
 
-  return data({
+  return {
     theme,
     bodyClassNames,
+    clerkConfigured: isClerkConfigured,
     ENV: {
       VITE_SANITY_PROJECT_ID: projectId,
       VITE_SANITY_DATASET: dataset,
       VITE_SANITY_API_VERSION: apiVersion,
     },
-  })
+  }
 }
 
 export function Layout({children}: {children: React.ReactNode}) {
-  const {bodyClassNames, ENV} = useLoaderData<typeof loader>()
+  // useLoaderData can return undefined in error boundaries
+  const loaderData = useLoaderData<typeof loader>()
+  const bodyClassNames = loaderData?.bodyClassNames ?? 'bg-white'
+  const ENV = loaderData?.ENV ?? {}
 
   return (
     <html lang="en">
@@ -83,6 +109,16 @@ export function Layout({children}: {children: React.ReactNode}) {
 }
 
 export default function App({loaderData}: Route.ComponentProps) {
+  // Only wrap with ClerkProvider if Clerk is configured
+  if (loaderData?.clerkConfigured) {
+    return (
+      <ClerkProvider loaderData={loaderData}>
+        <Outlet context={loaderData} />
+      </ClerkProvider>
+    )
+  }
+
+  // Without Clerk, just render the outlet
   return <Outlet context={loaderData} />
 }
 

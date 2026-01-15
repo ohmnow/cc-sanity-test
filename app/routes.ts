@@ -22,6 +22,17 @@ export default [
     route('get-started/:type', './routes/marketing/get-started/$type.tsx'),
     route('get-started/success', './routes/marketing/get-started/success.tsx'),
   ]),
+  // Investor Portal (Clerk protected)
+  layout('./routes/investor/layout.tsx', [
+    route('investor/dashboard', './routes/investor/dashboard.tsx'),
+    route('investor/profile', './routes/investor/profile.tsx'),
+    route('investor/opportunities', './routes/investor/opportunities/index.tsx'),
+    route('investor/opportunities/:slug', './routes/investor/opportunities/$slug.tsx'),
+    route('investor/opportunities/:slug/loi', './routes/investor/opportunities/$slug.loi.tsx'),
+  ]),
+  // Investor Auth (public routes)
+  route('investor/auth/sign-in/*', './routes/investor/auth/sign-in.tsx'),
+  route('investor/auth/sign-up/*', './routes/investor/auth/sign-up.tsx'),
   // Sanity Studio
   route('studio/*', 'routes/studio.tsx'),
   // Resource routes
@@ -30,5 +41,6 @@ export default [
     route('preview', './routes/resource/preview.ts'),
     route('toggle-theme', './routes/resource/toggle-theme.ts'),
     route('lead', './routes/resource/lead.ts'),
+    route('clerk-webhook', './routes/resource/clerk-webhook.ts'),
   ]),
 ] satisfies RouteConfig
