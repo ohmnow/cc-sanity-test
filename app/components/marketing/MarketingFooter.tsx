@@ -27,7 +27,7 @@ const footerLinks = {
     {name: 'Properties', href: '/properties'},
     {name: 'Our Projects', href: '/projects'},
     {name: 'Market Insights', href: '/blog'},
-    {name: 'FAQs', href: '/faq'},
+    {name: 'Investor Login', href: '/investor/auth/sign-in'},
   ],
   legal: [
     {name: 'Privacy Policy', href: '/privacy'},
