@@ -11,7 +11,9 @@ export const adminSessionCookie = createCookie('admin-session', {
 
 // Verify admin password from environment
 export function verifyAdminPassword(password: string): boolean {
-  const adminPassword = process.env.ADMIN_PASSWORD || 'admin123' // Default for dev
+  // Sanitize env var to remove any whitespace/newlines that Vercel might add
+  const rawPassword = process.env.ADMIN_PASSWORD
+  const adminPassword = rawPassword?.trim() || 'admin123' // Default for dev
   return password === adminPassword
 }
 
