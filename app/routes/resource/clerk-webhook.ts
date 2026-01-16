@@ -1,17 +1,22 @@
 import type {Route} from './+types/clerk-webhook'
-import {createClient} from '@sanity/client'
+import {createClient, type SanityClient} from '@sanity/client'
 import {projectDetails} from '~/sanity/projectDetails'
 
-// Create a write client for mutations
-const {projectId, dataset, apiVersion} = projectDetails()
-
-const writeClient = createClient({
-  projectId,
-  dataset,
-  apiVersion,
-  useCdn: false,
-  token: process.env.SANITY_WRITE_TOKEN,
-})
+// Lazy client initialization - created on first use
+let _writeClient: SanityClient | null = null
+function getWriteClient(): SanityClient {
+  if (!_writeClient) {
+    const {projectId, dataset, apiVersion} = projectDetails()
+    _writeClient = createClient({
+      projectId,
+      dataset,
+      apiVersion,
+      useCdn: false,
+      token: process.env.SANITY_WRITE_TOKEN,
+    })
+  }
+  return _writeClient
+}
 
 // Webhook secret for verifying requests from Clerk
 // Set this in your Clerk Dashboard and .env file
@@ -103,14 +108,14 @@ async function handleUserCreated(userData: ClerkUserData) {
   }
 
   // Check if an investor already exists with this email
-  const existingInvestor = await writeClient.fetch(
+  const existingInvestor = await getWriteClient().fetch(
     `*[_type == "investor" && email == $email][0]._id`,
     {email: primaryEmail}
   )
 
   if (existingInvestor) {
     // Link the Clerk ID to the existing investor
-    await writeClient
+    await getWriteClient()
       .patch(existingInvestor)
       .set({
         clerkId: userData.id,
@@ -130,7 +135,7 @@ async function handleUserCreated(userData: ClerkUserData) {
       accreditedStatus: 'pending',
     }
 
-    const result = await writeClient.create(newInvestor)
+    const result = await getWriteClient().create(newInvestor)
     console.log(`Created new investor ${result._id} for Clerk user ${userData.id}`)
   }
 }
@@ -141,7 +146,7 @@ async function handleUserUpdated(userData: ClerkUserData) {
   )?.email_address
 
   // Find the investor by Clerk ID
-  const investorId = await writeClient.fetch(
+  const investorId = await getWriteClient().fetch(
     `*[_type == "investor" && clerkId == $clerkId][0]._id`,
     {clerkId: userData.id}
   )
@@ -153,7 +158,7 @@ async function handleUserUpdated(userData: ClerkUserData) {
   }
 
   // Update the investor document
-  await writeClient
+  await getWriteClient()
     .patch(investorId)
     .set({
       email: primaryEmail || undefined,
@@ -166,7 +171,7 @@ async function handleUserUpdated(userData: ClerkUserData) {
 
 async function handleUserDeleted(userData: ClerkUserData) {
   // Find the investor by Clerk ID
-  const investorId = await writeClient.fetch(
+  const investorId = await getWriteClient().fetch(
     `*[_type == "investor" && clerkId == $clerkId][0]._id`,
     {clerkId: userData.id}
   )
@@ -178,7 +183,7 @@ async function handleUserDeleted(userData: ClerkUserData) {
 
   // Instead of deleting, we'll mark as inactive
   // This preserves historical data (LOIs, etc.)
-  await writeClient
+  await getWriteClient()
     .patch(investorId)
     .set({
       status: 'inactive',

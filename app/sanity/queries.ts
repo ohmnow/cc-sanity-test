@@ -180,3 +180,105 @@ export const PAGE_QUERY = groq`*[_type == "page" && slug.current == $slug][0]{
   sections,
   seo
 }`
+
+// Prospectus queries (Investor Portal)
+export const PROSPECTUSES_QUERY = groq`*[_type == "prospectus" && status in ["open", "subscribed"]] | order(_createdAt desc) {
+  _id,
+  title,
+  "slug": slug.current,
+  status,
+  projectType,
+  summary,
+  propertyAddress,
+  coverImage,
+  totalRaise,
+  minimumInvestment,
+  targetReturn,
+  projectedTimeline,
+  accessLevel,
+  closeDate
+}`
+
+export const PROSPECTUS_QUERY = groq`*[_type == "prospectus" && slug.current == $slug][0]{
+  _id,
+  title,
+  "slug": slug.current,
+  status,
+  projectType,
+  summary,
+  description,
+  propertyAddress,
+  coverImage,
+  gallery,
+  totalRaise,
+  minimumInvestment,
+  targetReturn,
+  projectedTimeline,
+  distributionSchedule,
+  financialHighlights,
+  documents,
+  accessLevel,
+  closeDate,
+  "invitedInvestorIds": invitedInvestors[]._ref,
+  "relatedProject": relatedProject->{
+    _id,
+    title,
+    "slug": slug.current,
+    beforeImage,
+    afterImage
+  }
+}`
+
+// Letter of Intent queries
+export const INVESTOR_LOIS_QUERY = groq`*[_type == "letterOfIntent" && investor._ref == $investorId] | order(submittedAt desc) {
+  _id,
+  investmentAmount,
+  status,
+  submittedAt,
+  reviewedAt,
+  "prospectus": prospectus->{
+    _id,
+    title,
+    "slug": slug.current,
+    coverImage,
+    targetReturn
+  }
+}`
+
+export const LOI_QUERY = groq`*[_type == "letterOfIntent" && _id == $loiId][0]{
+  _id,
+  investmentAmount,
+  status,
+  submittedAt,
+  reviewedAt,
+  investorNotes,
+  investorSignature,
+  companySignature,
+  "investor": investor->{
+    _id,
+    name,
+    email
+  },
+  "prospectus": prospectus->{
+    _id,
+    title,
+    "slug": slug.current,
+    coverImage,
+    totalRaise,
+    minimumInvestment,
+    targetReturn
+  }
+}`
+
+// Get investor by Clerk ID
+export const INVESTOR_BY_CLERK_ID_QUERY = groq`*[_type == "investor" && clerkId == $clerkId][0]{
+  _id,
+  name,
+  email,
+  phone,
+  company,
+  accreditedStatus,
+  investmentCapacity,
+  investmentInterests,
+  status
+}`

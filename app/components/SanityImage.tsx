@@ -3,7 +3,7 @@ import type {SanityImageSource} from '@sanity/asset-utils'
 import {getImageDimensions} from '@sanity/asset-utils'
 import urlBuilder from '@sanity/image-url'
 
-import {dataset, projectId} from '~/sanity/projectDetails'
+import {projectDetails} from '~/sanity/projectDetails'
 
 type SanityImageAssetWithAlt = SanityImageSource & {alt?: string}
 
@@ -33,7 +33,7 @@ export function SanityImage(
   return (
     <img
       className="not-prose h-auto w-full"
-      src={urlBuilder({projectId, dataset})
+      src={urlBuilder(projectDetails())
         .image(image)
         .width(isInline ? 100 : 800)
         .fit('max')

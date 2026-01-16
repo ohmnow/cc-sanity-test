@@ -5,7 +5,7 @@ import type {SatoriOptions} from 'satori'
 import satori from 'satori'
 
 import {OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH} from '~/routes/resource/og'
-import {dataset, projectId} from '~/sanity/projectDetails'
+import {projectDetails} from '~/sanity/projectDetails'
 
 // Load the font from the "public" directory
 const fontSans = (baseUrl: string) =>
@@ -74,7 +74,7 @@ export async function generatePngFromDocument(
         >
           <img
             alt=""
-            src={urlBuilder({projectId, dataset})
+            src={urlBuilder(projectDetails())
               // @ts-ignore
               .image(image.asset._ref)
               .height(800)

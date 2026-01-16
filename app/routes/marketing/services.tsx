@@ -1,5 +1,6 @@
 import {ArrowRight, Building2, Home, TrendingUp, type LucideIcon} from 'lucide-react'
 import {Link, useLoaderData} from 'react-router'
+import type {MetaFunction} from 'react-router'
 
 import {loadQuery} from '~/sanity/loader.server'
 import {loadQueryOptions} from '~/sanity/loadQueryOptions.server'
@@ -26,6 +27,23 @@ export async function loader({request}: Route.LoaderArgs) {
     options
   )
   return {services: services || []}
+}
+
+export const meta: MetaFunction = () => {
+  return [
+    {title: 'Our Services | Golden Gate Home Advisors'},
+    {
+      name: 'description',
+      content:
+        'Comprehensive real estate services for Bay Area buyers, sellers, and investors. Expert guidance, market analysis, and investment advisory.',
+    },
+    {property: 'og:title', content: 'Our Services | Golden Gate Home Advisors'},
+    {
+      property: 'og:description',
+      content: 'Expert real estate services for buyers, sellers, and investors in the Bay Area.',
+    },
+    {property: 'og:type', content: 'website'},
+  ]
 }
 
 // Icon mapping

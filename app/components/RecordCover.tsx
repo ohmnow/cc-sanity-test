@@ -1,7 +1,7 @@
 import type {SanityImageObjectStub} from '@sanity/asset-utils'
 import urlBuilder from '@sanity/image-url'
 
-import {dataset, projectId} from '~/sanity/projectDetails'
+import {projectDetails} from '~/sanity/projectDetails'
 
 type RecordCoverProps = {
   image?: SanityImageObjectStub & {alt: string}
@@ -15,7 +15,7 @@ export function RecordCover(props: RecordCoverProps) {
       {image ? (
         <img
           className="h-auto w-full object-cover shadow-black transition-all duration-300 group-hover:shadow-2xl group-hover:shadow-cyan-200"
-          src={urlBuilder({projectId, dataset})
+          src={urlBuilder(projectDetails())
             .image(image)
             .height(800)
             .width(800)

@@ -1,7 +1,7 @@
 import {ClerkProvider} from '@clerk/react-router'
-import {clerkMiddleware, rootAuthLoader} from '@clerk/react-router/server'
+// Using SSR approach (not middleware) for compatibility with Vercel
+import {rootAuthLoader} from '@clerk/react-router/ssr.server'
 import {
-  data,
   isRouteErrorResponse,
   Links,
   Meta,
@@ -21,11 +21,6 @@ import type {Route} from './+types/root'
 
 // Check if Clerk is configured
 const isClerkConfigured = Boolean(process.env.CLERK_SECRET_KEY)
-
-// Clerk middleware for auth (only if configured)
-export const middleware: Route.MiddlewareFunction[] = isClerkConfigured
-  ? [clerkMiddleware()]
-  : []
 
 export const links: Route.LinksFunction = () => {
   return [

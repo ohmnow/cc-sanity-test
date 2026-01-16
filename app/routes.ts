@@ -7,6 +7,9 @@ import {
 } from '@react-router/dev/routes'
 
 export default [
+  // SEO routes
+  route('sitemap.xml', './routes/sitemap[.]xml.ts'),
+  route('robots.txt', './routes/robots[.]txt.ts'),
   // Marketing website layout
   layout('./routes/marketing/layout.tsx', [
     index('./routes/marketing/index.tsx'),
@@ -16,6 +19,7 @@ export default [
     route('properties', './routes/marketing/properties.tsx'),
     route('properties/:id', './routes/marketing/properties.$id.tsx'),
     route('projects', './routes/marketing/projects.tsx'),
+    route('projects/:slug', './routes/marketing/projects.$slug.tsx'),
     route('testimonials', './routes/marketing/testimonials.tsx'),
     route('contact', './routes/marketing/contact.tsx'),
     route('get-started', './routes/marketing/get-started/index.tsx'),
@@ -26,6 +30,7 @@ export default [
   layout('./routes/investor/layout.tsx', [
     route('investor/dashboard', './routes/investor/dashboard.tsx'),
     route('investor/profile', './routes/investor/profile.tsx'),
+    route('investor/lois', './routes/investor/lois.tsx'),
     route('investor/opportunities', './routes/investor/opportunities/index.tsx'),
     route('investor/opportunities/:slug', './routes/investor/opportunities/$slug.tsx'),
     route('investor/opportunities/:slug/loi', './routes/investor/opportunities/$slug.loi.tsx'),
@@ -33,6 +38,15 @@ export default [
   // Investor Auth (public routes)
   route('investor/auth/sign-in/*', './routes/investor/auth/sign-in.tsx'),
   route('investor/auth/sign-up/*', './routes/investor/auth/sign-up.tsx'),
+  // Admin Portal (password protected)
+  route('admin/login', './routes/admin/login.tsx'),
+  route('admin/logout', './routes/admin/logout.ts'),
+  layout('./routes/admin/layout.tsx', [
+    route('admin', './routes/admin/index.tsx'),
+    route('admin/leads', './routes/admin/leads.tsx'),
+    route('admin/investors', './routes/admin/investors.tsx'),
+    route('admin/lois', './routes/admin/lois.tsx'),
+  ]),
   // Sanity Studio
   route('studio/*', 'routes/studio.tsx'),
   // Resource routes
@@ -42,5 +56,8 @@ export default [
     route('toggle-theme', './routes/resource/toggle-theme.ts'),
     route('lead', './routes/resource/lead.ts'),
     route('clerk-webhook', './routes/resource/clerk-webhook.ts'),
+    route('submit-loi', './routes/resource/submit-loi.ts'),
+    route('pdf/prospectus/:id', './routes/resource/pdf/prospectus.$id.ts'),
+    route('pdf/loi/:id', './routes/resource/pdf/loi.$id.ts'),
   ]),
 ] satisfies RouteConfig

@@ -1,16 +1,24 @@
 import {type ActionFunctionArgs} from 'react-router'
-import {createClient} from '@sanity/client'
+import {createClient, type SanityClient} from '@sanity/client'
 
-import {apiVersion, dataset, projectId} from '~/sanity/projectDetails'
+import {sendNewLeadEmail} from '~/lib/email.server'
+import {projectDetails} from '~/sanity/projectDetails'
 
-// Create a write client for mutations
-const writeClient = createClient({
-  projectId,
-  dataset,
-  apiVersion,
-  useCdn: false,
-  token: process.env.SANITY_WRITE_TOKEN,
-})
+// Lazy client initialization - created on first use
+let _writeClient: SanityClient | null = null
+function getWriteClient(): SanityClient {
+  if (!_writeClient) {
+    const {projectId, dataset, apiVersion} = projectDetails()
+    _writeClient = createClient({
+      projectId,
+      dataset,
+      apiVersion,
+      useCdn: false,
+      token: process.env.SANITY_WRITE_TOKEN,
+    })
+  }
+  return _writeClient
+}
 
 export async function action({request}: ActionFunctionArgs) {
   if (request.method !== 'POST') {
@@ -61,7 +69,16 @@ export async function action({request}: ActionFunctionArgs) {
       submittedAt: new Date().toISOString(),
     }
 
-    const result = await writeClient.create(document)
+    const result = await getWriteClient().create(document)
+
+    // Send email notification to admin (non-blocking)
+    sendNewLeadEmail({
+      name,
+      email,
+      phone: phone || undefined,
+      type: leadType,
+      message: notes || undefined,
+    }).catch((err) => console.error('[Email] Failed to send lead notification:', err))
 
     return Response.json({
       success: true,

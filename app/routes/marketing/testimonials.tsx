@@ -1,6 +1,6 @@
-import {Quote, Star} from 'lucide-react'
+import {Quote, Star, ArrowRight} from 'lucide-react'
 import {Link, useLoaderData} from 'react-router'
-import {ArrowRight} from 'lucide-react'
+import type {MetaFunction} from 'react-router'
 
 import {loadQuery} from '~/sanity/loader.server'
 import {loadQueryOptions} from '~/sanity/loadQueryOptions.server'
@@ -26,6 +26,23 @@ export async function loader({request}: Route.LoaderArgs) {
     options
   )
   return {testimonials: testimonials || []}
+}
+
+export const meta: MetaFunction = () => {
+  return [
+    {title: 'Client Testimonials | Golden Gate Home Advisors'},
+    {
+      name: 'description',
+      content:
+        'Read what our clients say about working with Golden Gate Home Advisors. Real stories from Bay Area buyers, sellers, and investors.',
+    },
+    {property: 'og:title', content: 'Client Testimonials | Golden Gate Home Advisors'},
+    {
+      property: 'og:description',
+      content: 'Real stories from satisfied Bay Area real estate clients.',
+    },
+    {property: 'og:type', content: 'website'},
+  ]
 }
 
 const defaultTestimonials: SanityTestimonial[] = [

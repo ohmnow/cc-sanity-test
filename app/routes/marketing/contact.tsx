@@ -1,8 +1,26 @@
 import {ArrowRight, Mail, MapPin, Phone, Clock} from 'lucide-react'
 import {Form, useActionData, useNavigation} from 'react-router'
+import type {MetaFunction} from 'react-router'
 import {useState} from 'react'
 
 import type {Route} from './+types/contact'
+
+export const meta: MetaFunction = () => {
+  return [
+    {title: 'Contact Us | Golden Gate Home Advisors'},
+    {
+      name: 'description',
+      content:
+        'Get in touch with Golden Gate Home Advisors. Schedule a consultation to discuss your real estate goals in San Francisco and the Bay Area.',
+    },
+    {property: 'og:title', content: 'Contact Us | Golden Gate Home Advisors'},
+    {
+      property: 'og:description',
+      content: 'Schedule a consultation to discuss your Bay Area real estate goals.',
+    },
+    {property: 'og:type', content: 'website'},
+  ]
+}
 
 export async function action({request}: Route.ActionArgs) {
   const formData = await request.formData()

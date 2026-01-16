@@ -1,5 +1,6 @@
 import {ArrowRight, Award, Heart, Target, Users} from 'lucide-react'
 import {Link, useLoaderData} from 'react-router'
+import type {MetaFunction} from 'react-router'
 
 import {loadQuery} from '~/sanity/loader.server'
 import {loadQueryOptions} from '~/sanity/loadQueryOptions.server'
@@ -39,6 +40,23 @@ export async function loader({request}: Route.LoaderArgs) {
     teamMembers: teamMembers || [],
     siteSettings,
   }
+}
+
+export const meta: MetaFunction = () => {
+  return [
+    {title: 'About Us | Golden Gate Home Advisors'},
+    {
+      name: 'description',
+      content:
+        'Meet the Golden Gate Home Advisors team. Over 15 years of experience helping Bay Area clients achieve their real estate goals with integrity and expertise.',
+    },
+    {property: 'og:title', content: 'About Us | Golden Gate Home Advisors'},
+    {
+      property: 'og:description',
+      content: 'Meet our team of experienced Bay Area real estate professionals.',
+    },
+    {property: 'og:type', content: 'website'},
+  ]
 }
 
 const defaultTeamMembers: SanityTeamMember[] = [

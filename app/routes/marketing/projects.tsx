@@ -33,8 +33,9 @@ export async function loader({request}: Route.LoaderArgs) {
 }
 
 interface Project {
-  id: number
+  id: number | string
   title: string
+  slug?: string
   location: string
   type: string
   sqft: string
@@ -365,7 +366,7 @@ export default function Projects() {
                   </div>
 
                   <Link
-                    to={`/projects/${project.id}`}
+                    to={`/projects/${project.slug || project.id}`}
                     className="inline-flex items-center gap-2 text-[#1a1a1a] font-semibold hover:text-[#c9a961] transition-colors"
                   >
                     View Full Project Details

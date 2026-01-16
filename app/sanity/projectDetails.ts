@@ -13,48 +13,59 @@ declare global {
   }
 }
 
-let projectId: string
-let dataset: string
-let apiVersion: string
 const defaultApiVersion = `2024-02-13`
 
-if (typeof document === 'undefined') {
-  if (typeof process !== 'undefined') {
-    projectId = process.env.VITE_SANITY_PROJECT_ID!
-    dataset = process.env.VITE_SANITY_DATASET!
-    apiVersion = process.env.VITE_SANITY_API_VERSION ?? defaultApiVersion
+// Lazy evaluation - only read env vars when needed
+let _projectId: string | undefined
+let _dataset: string | undefined
+let _apiVersion: string | undefined
+let _initialized = false
+
+function ensureInitialized() {
+  if (_initialized) return
+
+  if (typeof document === 'undefined') {
+    if (typeof process !== 'undefined') {
+      // Server-side: use non-VITE prefixed versions only (runtime env vars)
+      // VITE_ prefixed vars may be replaced at build time, so we avoid them on server
+      _projectId = process.env.SANITY_PROJECT_ID
+      _dataset = process.env.SANITY_DATASET
+      _apiVersion = process.env.SANITY_API_VERSION || defaultApiVersion
+    } else {
+      _projectId = import.meta.env.VITE_SANITY_PROJECT_ID
+      _dataset = import.meta.env.VITE_SANITY_DATASET
+      _apiVersion = import.meta.env.VITE_SANITY_API_VERSION ?? defaultApiVersion
+    }
   } else {
-    projectId = import.meta.env.VITE_SANITY_PROJECT_ID
-    dataset = import.meta.env.VITE_SANITY_DATASET
-    apiVersion = import.meta.env.VITE_SANITY_API_VERSION ?? defaultApiVersion
+    _projectId = window.ENV?.VITE_SANITY_PROJECT_ID
+    _dataset = window.ENV?.VITE_SANITY_DATASET
+    _apiVersion = window.ENV?.VITE_SANITY_API_VERSION ?? defaultApiVersion
   }
-} else {
-  projectId = window.ENV.VITE_SANITY_PROJECT_ID
-  dataset = window.ENV.VITE_SANITY_DATASET
-  apiVersion = window.ENV.VITE_SANITY_API_VERSION ?? defaultApiVersion
+
+  _initialized = true
 }
 
-export {apiVersion, dataset, projectId}
-
-export const projectDetails = () => ({
-  projectId,
-  dataset,
-  apiVersion,
-})
-
-// If any of these values are missing, throw errors as the app requires them
-if (!projectId) {
-  throw new Error(
-    `Missing VITE_SANITY_PROJECT_ID in .env, run npx sanity@latest init --env`,
-  )
+export const projectDetails = () => {
+  ensureInitialized()
+  return {
+    projectId: _projectId!,
+    dataset: _dataset!,
+    apiVersion: _apiVersion!,
+  }
 }
-if (!dataset) {
-  throw new Error(
-    `Missing VITE_SANITY_DATASET in .env, run npx sanity@latest init --env`,
-  )
+
+// For backwards compatibility - getter functions
+export const getProjectId = () => {
+  ensureInitialized()
+  return _projectId!
 }
-if (!apiVersion) {
-  throw new Error(
-    `Missing VITE_SANITY_API_VERSION in .env, run npx sanity@latest init --env`,
-  )
+
+export const getDataset = () => {
+  ensureInitialized()
+  return _dataset!
+}
+
+export const getApiVersion = () => {
+  ensureInitialized()
+  return _apiVersion!
 }

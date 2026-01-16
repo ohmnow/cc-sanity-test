@@ -1,4 +1,5 @@
 import {useLoaderData} from 'react-router'
+import type {MetaFunction} from 'react-router'
 
 import {BeforeAfterSection} from '~/components/marketing/BeforeAfterSection'
 import {CTASection} from '~/components/marketing/CTASection'
@@ -94,6 +95,37 @@ interface HomepageData {
   ctaHeadline: string
   ctaSubheadline: string
   ctaButton?: {text: string; url: string}
+}
+
+export const meta: MetaFunction = () => {
+  return [
+    {title: 'Golden Gate Home Advisors | Bay Area Real Estate Experts'},
+    {
+      name: 'description',
+      content:
+        "San Francisco Bay Area's premier real estate advisory for discerning buyers, strategic sellers, and sophisticated investors. Expert guidance in home purchases, sales, and investment opportunities.",
+    },
+    {
+      name: 'keywords',
+      content:
+        'San Francisco real estate, Bay Area homes, luxury real estate, home buying, home selling, real estate investment, Pacific Heights, property advisors',
+    },
+    {property: 'og:title', content: 'Golden Gate Home Advisors | Bay Area Real Estate Experts'},
+    {
+      property: 'og:description',
+      content:
+        "San Francisco Bay Area's premier real estate advisory for buyers, sellers, and investors.",
+    },
+    {property: 'og:type', content: 'website'},
+    {property: 'og:url', content: 'https://goldengateadvisors.com'},
+    {name: 'twitter:card', content: 'summary_large_image'},
+    {name: 'twitter:title', content: 'Golden Gate Home Advisors | Bay Area Real Estate Experts'},
+    {
+      name: 'twitter:description',
+      content:
+        "San Francisco Bay Area's premier real estate advisory for buyers, sellers, and investors.",
+    },
+  ]
 }
 
 export default function MarketingHome() {

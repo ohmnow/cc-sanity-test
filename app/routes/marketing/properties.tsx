@@ -1,5 +1,6 @@
 import {ArrowRight, Bath, BedDouble, MapPin, Maximize} from 'lucide-react'
 import {Link, useLoaderData} from 'react-router'
+import type {MetaFunction} from 'react-router'
 
 import {loadQuery} from '~/sanity/loader.server'
 import {loadQueryOptions} from '~/sanity/loadQueryOptions.server'
@@ -36,6 +37,23 @@ export async function loader({request}: Route.LoaderArgs) {
     options
   )
   return {properties: properties || []}
+}
+
+export const meta: MetaFunction = () => {
+  return [
+    {title: 'Properties for Sale | Golden Gate Home Advisors'},
+    {
+      name: 'description',
+      content:
+        'Browse luxury homes and investment properties in San Francisco and the Bay Area. Exclusive listings and off-market opportunities.',
+    },
+    {property: 'og:title', content: 'Properties for Sale | Golden Gate Home Advisors'},
+    {
+      property: 'og:description',
+      content: 'Luxury homes and investment properties in San Francisco and the Bay Area.',
+    },
+    {property: 'og:type', content: 'website'},
+  ]
 }
 
 // Format price as currency
