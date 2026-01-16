@@ -226,7 +226,10 @@ export const PROSPECTUS_QUERY = groq`*[_type == "prospectus" && slug.current == 
     "slug": slug.current,
     beforeImage,
     afterImage
-  }
+  },
+  // Calculate funding progress from approved LOIs
+  "fundingCommitted": math::sum(*[_type == "letterOfIntent" && prospectus._ref == ^._id && status == "approved"].investmentAmount),
+  "loiCount": count(*[_type == "letterOfIntent" && prospectus._ref == ^._id && status == "approved"])
 }`
 
 // Letter of Intent queries

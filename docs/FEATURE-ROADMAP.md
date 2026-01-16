@@ -1,7 +1,7 @@
 # Feature Roadmap - Golden Gate Home Advisors
 
-**Last Updated:** January 16, 2026
-**Current Status:** Production-ready for marketing & lead capture
+**Last Updated:** January 15, 2026
+**Current Status:** Sprint 7 complete - Security & Polish
 
 ---
 
@@ -13,15 +13,15 @@
 | Marketing Website | 9/10 | All pages, responsive, SEO-ready |
 | Lead Capture System | 10/10 | Multi-type forms, admin management, email notifications |
 | Content Management | 10/10 | Sanity Studio with Visual Editing |
-| Admin Dashboard | 8/10 | Leads, investors, LOIs management |
-| Email System | 9/10 | Resend.io transactional emails |
+| Admin Dashboard | 9/10 | Leads, investors, LOIs management with email notifications |
+| Email System | 10/10 | Resend.io - LOI submission, status updates, lead notifications |
+| Security | 9/10 | Clerk webhook Svix verified, rate limiting, Sentry error tracking |
+| Investor Portal | 8/10 | Profile editing, LOI submission, opportunity browsing |
 
 ### 🟡 Partially Implemented
 | Feature | Score | Gap |
 |---------|-------|-----|
-| Investor Portal | 7/10 | Missing e-signatures, payment processing |
 | PDF Generation | 7/10 | Works but needs design polish |
-| Security | 7/10 | Clerk webhook needs Svix verification |
 
 ### ❌ Not Implemented
 - Payment processing (Stripe)
@@ -35,13 +35,13 @@
 ## Priority Tiers
 
 ### 🔴 P0 - Critical (Security/Compliance)
-Must fix before accepting real investors.
+~~Must fix before accepting real investors.~~ **✅ COMPLETED in Sprint 7**
 
-| Task | Complexity | Why Critical |
-|------|------------|--------------|
-| Implement Clerk webhook Svix verification | Low | Security vulnerability - webhook can be spoofed |
-| Add rate limiting to lead forms | Low | Prevent spam/abuse |
-| Implement proper CORS for API routes | Low | Security best practice |
+| Task | Complexity | Status |
+|------|------------|--------|
+| ~~Implement Clerk webhook Svix verification~~ | Low | ✅ Done |
+| ~~Add rate limiting to lead forms~~ | Low | ✅ Done |
+| ~~Add error tracking (Sentry)~~ | Low | ✅ Done |
 
 ### 🟠 P1 - High Priority (Core Functionality)
 Features needed for real business operations.
@@ -52,7 +52,7 @@ Features needed for real business operations.
 | **Google Maps integration** | Medium | Properties need location context |
 | **Mortgage calculator** | Low | Standard buyer tool |
 | **Email sequence automation** | Medium | Nurture leads automatically |
-| **Investor profile completion** | Low | Route exists but needs full form |
+| ~~**Investor profile completion**~~ | Low | ✅ Done in Sprint 7 |
 | **LOI countersigning workflow** | Medium | Admin can approve but can't sign |
 
 ### 🟡 P2 - Medium Priority (Enhanced Experience)
@@ -84,15 +84,20 @@ Features for scaling to full real estate platform.
 
 ## Recommended Sprint Plan
 
-### Sprint 7: Security & Polish (1-2 days)
+### Sprint 7: Security & Polish ✅ COMPLETED
 **Goal:** Production-ready for real traffic
 
-- [ ] Fix Clerk webhook Svix verification
-- [ ] Add rate limiting to form submissions
-- [ ] Review and fix any hardcoded values (e.g., 70% funding progress)
-- [ ] Test all email notifications end-to-end
-- [ ] Add error tracking (Sentry or similar)
-- [ ] Complete investor profile page
+- [x] Fix Clerk webhook Svix verification - Proper signature validation with `svix` library
+- [x] Add rate limiting to form submissions - In-memory rate limiter for leads (5/min) and LOIs (3/5min)
+- [x] Review and fix any hardcoded values - Funding progress now calculates from approved LOIs
+- [x] Test all email notifications end-to-end - Added admin LOI status update emails to investors
+- [x] Add error tracking (Sentry) - Client & server initialization with session replay
+- [x] Complete investor profile page - Edit phone, company, investment capacity, interests
+
+**Learnings:**
+- React Router 7 strictly enforces server/client code splitting - use `entry.server.tsx` for server-only init
+- Dynamic imports required for Sentry in error boundaries
+- GROQ `math::sum()` and `count()` work great for aggregating LOI data
 
 ### Sprint 8: Property Discovery (2-3 days)
 **Goal:** Users can actually find properties they want
@@ -134,12 +139,12 @@ Features for scaling to full real estate platform.
 
 | Item | Priority | Notes |
 |------|----------|-------|
-| Remove hardcoded 70% funding progress | P0 | In `/investor/opportunities/$slug.tsx` |
+| ~~Remove hardcoded 70% funding progress~~ | ~~P0~~ | ✅ Fixed - calculates from LOI data |
 | Admin password defaults to 'admin123' | P1 | Security anti-pattern |
 | Resend silently fails if not configured | P2 | Should show config warning |
 | Some TypeScript `any` types | P2 | Improve type safety |
 | Missing loading states on some pages | P2 | UX improvement |
-| Inconsistent error handling | P2 | Standardize error UI |
+| Inconsistent error handling | P2 | Standardize error UI - Sentry now captures errors |
 
 ---
 

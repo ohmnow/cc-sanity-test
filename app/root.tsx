@@ -1,6 +1,7 @@
 import {ClerkProvider} from '@clerk/react-router'
 // Using SSR approach (not middleware) for compatibility with Vercel
 import {rootAuthLoader} from '@clerk/react-router/ssr.server'
+import {useEffect} from 'react'
 import {
   isRouteErrorResponse,
   Links,
@@ -70,6 +71,7 @@ async function getLoaderData(request: Request) {
       VITE_SANITY_PROJECT_ID: projectId,
       VITE_SANITY_DATASET: dataset,
       VITE_SANITY_API_VERSION: apiVersion,
+      SENTRY_DSN: process.env.SENTRY_DSN?.trim(),
     },
   }
 }
@@ -121,27 +123,56 @@ export function ErrorBoundary({error}: Route.ErrorBoundaryProps) {
   let message = 'Oops!'
   let details = 'An unexpected error occurred.'
   let stack: string | undefined
+  let statusCode: number | undefined
 
   if (isRouteErrorResponse(error)) {
+    statusCode = error.status
     message = error.status === 404 ? '404' : 'Error'
     details =
       error.status === 404
         ? 'The requested page could not be found.'
         : error.statusText || details
-  } else if (import.meta.env.DEV && error && error instanceof Error) {
-    details = error.message
-    stack = error.stack
+  } else if (error && error instanceof Error) {
+    if (import.meta.env.DEV) {
+      details = error.message
+      stack = error.stack
+    }
   }
 
+  // Report errors to Sentry (client-side only, dynamically imported)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && error && !isRouteErrorResponse(error)) {
+      import('~/lib/sentry.client').then(({initSentry, captureException}) => {
+        initSentry()
+        captureException(error, {boundary: 'root', url: window.location.href})
+      }).catch(() => {
+        // Sentry import failed, silently continue
+      })
+    }
+  }, [error])
+
   return (
-    <main className="pt-16 p-4 container mx-auto">
-      <h1>{message}</h1>
-      <p>{details}</p>
-      {stack && (
-        <pre className="w-full p-4 overflow-x-auto">
-          <code>{stack}</code>
-        </pre>
-      )}
+    <main className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center p-8">
+        <h1 className="font-display text-6xl text-[#1a1a1a] mb-4">{message}</h1>
+        <p className="text-gray-600 mb-6 max-w-md">{details}</p>
+        {statusCode !== 404 && (
+          <p className="text-sm text-gray-500 mb-4">
+            This error has been logged and we&apos;re looking into it.
+          </p>
+        )}
+        <a
+          href="/"
+          className="inline-block px-6 py-3 bg-[#c9a961] text-white rounded-lg font-semibold hover:bg-[#b8994f] transition-colors"
+        >
+          Back to Home
+        </a>
+        {stack && import.meta.env.DEV && (
+          <pre className="mt-8 w-full p-4 overflow-x-auto text-left bg-gray-900 text-gray-100 rounded-lg text-sm">
+            <code>{stack}</code>
+          </pre>
+        )}
+      </div>
     </main>
   )
 }

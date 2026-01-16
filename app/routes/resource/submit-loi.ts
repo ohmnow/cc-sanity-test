@@ -1,6 +1,11 @@
 import type {Route} from './+types/submit-loi'
 import {createClient, type SanityClient} from '@sanity/client'
 import {sendLoiSubmittedEmails} from '~/lib/email.server'
+import {
+  checkRateLimit,
+  getClientIp,
+  rateLimitedResponse,
+} from '~/lib/rate-limit.server'
 import {projectDetails} from '~/sanity/projectDetails'
 import {INVESTOR_BY_CLERK_ID_QUERY, PROSPECTUS_QUERY} from '~/sanity/queries'
 
@@ -16,7 +21,7 @@ function getWriteClient(): SanityClient {
       dataset,
       apiVersion,
       useCdn: false,
-      token: process.env.SANITY_WRITE_TOKEN,
+      token: process.env.SANITY_WRITE_TOKEN?.trim(),
     })
   }
   return _writeClient
@@ -48,6 +53,19 @@ interface LOISubmission {
 export async function action({request}: Route.ActionArgs) {
   if (request.method !== 'POST') {
     return Response.json({error: 'Method not allowed'}, {status: 405})
+  }
+
+  // Rate limiting: 3 LOI submissions per 5 minutes per IP
+  const clientIp = getClientIp(request)
+  const rateLimit = checkRateLimit(clientIp, {
+    limit: 3,
+    windowSeconds: 300, // 5 minutes
+    identifier: 'loi-submit',
+  })
+
+  if (!rateLimit.success) {
+    console.warn(`[Rate Limit] LOI submission blocked for IP: ${clientIp}`)
+    return rateLimitedResponse(rateLimit.resetAt)
   }
 
   try {

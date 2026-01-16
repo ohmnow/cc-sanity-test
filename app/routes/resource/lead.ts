@@ -2,6 +2,11 @@ import {type ActionFunctionArgs} from 'react-router'
 import {createClient, type SanityClient} from '@sanity/client'
 
 import {sendNewLeadEmail} from '~/lib/email.server'
+import {
+  checkRateLimit,
+  getClientIp,
+  rateLimitedResponse,
+} from '~/lib/rate-limit.server'
 import {projectDetails} from '~/sanity/projectDetails'
 
 // Lazy client initialization - created on first use
@@ -14,7 +19,7 @@ function getWriteClient(): SanityClient {
       dataset,
       apiVersion,
       useCdn: false,
-      token: process.env.SANITY_WRITE_TOKEN,
+      token: process.env.SANITY_WRITE_TOKEN?.trim(),
     })
   }
   return _writeClient
@@ -23,6 +28,19 @@ function getWriteClient(): SanityClient {
 export async function action({request}: ActionFunctionArgs) {
   if (request.method !== 'POST') {
     return Response.json({error: 'Method not allowed'}, {status: 405})
+  }
+
+  // Rate limiting: 5 submissions per minute per IP
+  const clientIp = getClientIp(request)
+  const rateLimit = checkRateLimit(clientIp, {
+    limit: 5,
+    windowSeconds: 60,
+    identifier: 'lead-form',
+  })
+
+  if (!rateLimit.success) {
+    console.warn(`[Rate Limit] Lead form blocked for IP: ${clientIp}`)
+    return rateLimitedResponse(rateLimit.resetAt)
   }
 
   try {

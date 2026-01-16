@@ -12,6 +12,7 @@ import {
   Building,
   User,
 } from 'lucide-react'
+import {sendLoiStatusUpdateEmail} from '~/lib/email.server'
 import {getViewClient} from '~/sanity/client.server'
 
 import type {Route} from './+types/lois'
@@ -89,6 +90,27 @@ export async function loader({request}: Route.LoaderArgs) {
   return {lois, stats}
 }
 
+// Helper function to send status update email
+async function sendStatusEmail(loiId: string, status: 'approved' | 'rejected' | 'countersigned') {
+  const client = getViewClient()
+  const loi = await client.fetch<{
+    investor: {name: string; email: string} | null
+    prospectus: {title: string} | null
+  }>(`*[_type == "letterOfIntent" && _id == $loiId][0]{
+    "investor": investor->{name, email},
+    "prospectus": prospectus->{title}
+  }`, {loiId})
+
+  if (loi?.investor?.email && loi?.prospectus?.title) {
+    sendLoiStatusUpdateEmail({
+      investorName: loi.investor.name,
+      investorEmail: loi.investor.email,
+      prospectusTitle: loi.prospectus.title,
+      status,
+    }).catch((err) => console.error('[Email] Failed to send LOI status update:', err))
+  }
+}
+
 export async function action({request}: Route.ActionArgs) {
   const formData = await request.formData()
   const intent = formData.get('intent')
@@ -116,6 +138,8 @@ export async function action({request}: Route.ActionArgs) {
           countersignedAt: new Date().toISOString(),
         })
         .commit()
+      // Send approval email to investor (non-blocking)
+      sendStatusEmail(loiId, 'approved')
       return {success: true, message: 'LOI approved'}
     }
     case 'reject': {
@@ -126,6 +150,8 @@ export async function action({request}: Route.ActionArgs) {
           reviewedAt: new Date().toISOString(),
         })
         .commit()
+      // Send rejection email to investor (non-blocking)
+      sendStatusEmail(loiId, 'rejected')
       return {success: true, message: 'LOI rejected'}
     }
     case 'review': {
@@ -143,6 +169,10 @@ export async function action({request}: Route.ActionArgs) {
         update.countersignedAt = new Date().toISOString()
       }
       await writeClient.patch(loiId).set(update).commit()
+      // Send email for status changes to approved/rejected (non-blocking)
+      if (newStatus === 'approved' || newStatus === 'rejected') {
+        sendStatusEmail(loiId, newStatus)
+      }
       return {success: true}
     }
     default:

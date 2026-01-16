@@ -1,5 +1,6 @@
 import type {Route} from './+types/clerk-webhook'
 import {createClient, type SanityClient} from '@sanity/client'
+import {Webhook} from 'svix'
 import {projectDetails} from '~/sanity/projectDetails'
 
 // Lazy client initialization - created on first use
@@ -12,15 +13,23 @@ function getWriteClient(): SanityClient {
       dataset,
       apiVersion,
       useCdn: false,
-      token: process.env.SANITY_WRITE_TOKEN,
+      token: process.env.SANITY_WRITE_TOKEN?.trim(),
     })
   }
   return _writeClient
 }
 
 // Webhook secret for verifying requests from Clerk
-// Set this in your Clerk Dashboard and .env file
-const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET
+// Set this in your Clerk Dashboard > Webhooks and add to .env file
+function getWebhookSecret(): string {
+  const secret = process.env.CLERK_WEBHOOK_SECRET?.trim()
+  if (!secret) {
+    throw new Error(
+      'CLERK_WEBHOOK_SECRET is not set. Configure it in Clerk Dashboard > Webhooks and add to your environment variables.'
+    )
+  }
+  return secret
+}
 
 interface ClerkUserData {
   id: string
@@ -54,24 +63,27 @@ export async function action({request}: Route.ActionArgs) {
 
   // If missing headers, reject
   if (!svix_id || !svix_timestamp || !svix_signature) {
+    console.error('Clerk webhook missing required svix headers')
     return new Response('Missing svix headers', {status: 400})
   }
 
-  // Get the body
+  // Get the raw body for signature verification
+  const rawBody = await request.text()
+
+  // Verify the webhook signature using Svix
   let body: ClerkWebhookEvent
   try {
-    body = await request.json()
-  } catch {
-    return new Response('Invalid JSON', {status: 400})
+    const wh = new Webhook(getWebhookSecret())
+    body = wh.verify(rawBody, {
+      'svix-id': svix_id,
+      'svix-timestamp': svix_timestamp,
+      'svix-signature': svix_signature,
+    }) as ClerkWebhookEvent
+  } catch (err) {
+    console.error('Clerk webhook signature verification failed:', err)
+    return new Response('Invalid signature', {status: 401})
   }
 
-  // TODO: Add proper Svix signature verification
-  // For production, install svix and verify the signature:
-  // import { Webhook } from 'svix'
-  // const wh = new Webhook(WEBHOOK_SECRET)
-  // const payload = await wh.verify(rawBody, headers)
-
-  // For now, we'll process the webhook (add proper verification before production)
   const eventType = body.type
   const userData = body.data
 

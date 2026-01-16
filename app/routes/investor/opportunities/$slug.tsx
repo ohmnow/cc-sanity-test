@@ -60,6 +60,9 @@ interface Prospectus {
     beforeImage?: {asset: {_ref: string}}
     afterImage?: {asset: {_ref: string}}
   }
+  // Funding progress data from approved LOIs
+  fundingCommitted?: number
+  loiCount?: number
 }
 
 export async function loader({params, request}: Route.LoaderArgs) {
@@ -129,8 +132,10 @@ function getProjectTypeLabel(type: string) {
 export default function OpportunityDetail() {
   const {prospectus} = useLoaderData<typeof loader>()
 
-  // Calculate a mock funding progress (in a real app, this would come from LOI totals)
-  const fundingProgress = 70 // Placeholder
+  // Calculate funding progress from actual approved LOIs
+  const fundingCommitted = prospectus.fundingCommitted || 0
+  const totalRaise = prospectus.totalRaise || 1 // Avoid division by zero
+  const fundingProgress = Math.min((fundingCommitted / totalRaise) * 100, 100)
 
   return (
     <div className="py-8">
@@ -207,12 +212,21 @@ export default function OpportunityDetail() {
                 </div>
                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-[#c9a961] rounded-full"
+                    className="h-full bg-[#c9a961] rounded-full transition-all duration-500"
                     style={{width: `${fundingProgress}%`}}
                   />
                 </div>
                 <p className="text-sm text-gray-500 mt-2">
-                  Target: {formatCurrency(prospectus.totalRaise)}
+                  {fundingCommitted > 0 ? (
+                    <>
+                      {formatCurrency(fundingCommitted)} committed of {formatCurrency(prospectus.totalRaise)} target
+                      {prospectus.loiCount && prospectus.loiCount > 0 && (
+                        <span className="text-gray-400"> · {prospectus.loiCount} investor{prospectus.loiCount !== 1 ? 's' : ''}</span>
+                      )}
+                    </>
+                  ) : (
+                    <>Target: {formatCurrency(prospectus.totalRaise)}</>
+                  )}
                 </p>
               </div>
 
