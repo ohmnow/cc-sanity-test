@@ -1,7 +1,7 @@
 import {renderToBuffer} from '@react-pdf/renderer'
 import {getAuth} from '@clerk/react-router/server'
 import {LOIDocument, type LOIData} from '~/lib/pdf/loi-template'
-import {viewClient} from '~/sanity/client.server'
+import {getViewClient} from '~/sanity/client.server'
 
 import type {Route} from './+types/loi.$id'
 
@@ -69,7 +69,7 @@ export async function loader(args: Route.LoaderArgs) {
   }
 
   // Fetch LOI data from Sanity
-  const loi = await viewClient.fetch<SanityLOI | null>(LOI_PDF_QUERY, {id})
+  const loi = await getViewClient().fetch<SanityLOI | null>(LOI_PDF_QUERY, {id})
 
   if (!loi) {
     throw new Response('Letter of Intent not found', {status: 404})

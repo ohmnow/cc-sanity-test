@@ -9,7 +9,7 @@ import {
   CheckCircle,
   AlertCircle,
 } from 'lucide-react'
-import {viewClient} from '~/sanity/client.server'
+import {getViewClient} from '~/sanity/client.server'
 
 import type {Route} from './+types/index'
 
@@ -66,7 +66,7 @@ interface Stats {
 }
 
 export async function loader({}: Route.LoaderArgs) {
-  const stats = await viewClient.fetch<Stats>(ADMIN_STATS_QUERY)
+  const stats = await getViewClient().fetch<Stats>(ADMIN_STATS_QUERY)
   return {stats}
 }
 

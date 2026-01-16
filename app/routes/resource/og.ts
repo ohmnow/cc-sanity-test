@@ -1,7 +1,7 @@
 import groq from 'groq'
 
 import {generatePngFromDocument} from '~/lib/og.server'
-import {viewClient} from '~/sanity/client.server'
+import {getViewClient} from '~/sanity/client.server'
 
 import type {Route} from './+types/og'
 
@@ -16,7 +16,7 @@ export const loader = async ({request}: Route.LoaderArgs) => {
     return new Response('Bad request', {status: 400})
   }
 
-  const doc = await viewClient.fetch(groq`*[_id == $id][0]{ ..., artist-> }`, {
+  const doc = await getViewClient().fetch(groq`*[_id == $id][0]{ ..., artist-> }`, {
     id,
   })
 

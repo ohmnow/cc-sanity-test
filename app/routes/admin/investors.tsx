@@ -12,7 +12,7 @@ import {
   Clock,
   FileText,
 } from 'lucide-react'
-import {viewClient} from '~/sanity/client.server'
+import {getViewClient} from '~/sanity/client.server'
 
 import type {Route} from './+types/investors'
 
@@ -47,7 +47,7 @@ export async function loader({request}: Route.LoaderArgs) {
   const statusFilter = url.searchParams.get('status')
   const accreditedFilter = url.searchParams.get('accredited')
 
-  let investors = await viewClient.fetch<Investor[]>(INVESTORS_QUERY)
+  let investors = await getViewClient().fetch<Investor[]>(INVESTORS_QUERY)
 
   // Apply filters
   if (statusFilter) {
@@ -74,7 +74,7 @@ export async function action({request}: Route.ActionArgs) {
     return {error: 'Write token not configured'}
   }
 
-  const writeClient = viewClient.withConfig({token})
+  const writeClient = getViewClient().withConfig({token})
 
   switch (intent) {
     case 'updateStatus': {

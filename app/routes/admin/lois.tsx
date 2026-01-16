@@ -12,7 +12,7 @@ import {
   Building,
   User,
 } from 'lucide-react'
-import {viewClient} from '~/sanity/client.server'
+import {getViewClient} from '~/sanity/client.server'
 
 import type {Route} from './+types/lois'
 
@@ -68,7 +68,7 @@ export async function loader({request}: Route.LoaderArgs) {
   const url = new URL(request.url)
   const statusFilter = url.searchParams.get('status')
 
-  let lois = await viewClient.fetch<LOI[]>(LOIS_QUERY)
+  let lois = await getViewClient().fetch<LOI[]>(LOIS_QUERY)
 
   // Apply filters
   if (statusFilter) {
@@ -103,7 +103,7 @@ export async function action({request}: Route.ActionArgs) {
     return {error: 'Write token not configured'}
   }
 
-  const writeClient = viewClient.withConfig({token})
+  const writeClient = getViewClient().withConfig({token})
 
   switch (intent) {
     case 'approve': {

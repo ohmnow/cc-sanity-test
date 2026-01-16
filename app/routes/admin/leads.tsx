@@ -9,7 +9,7 @@ import {
   ArrowUpRight,
   UserPlus,
 } from 'lucide-react'
-import {viewClient} from '~/sanity/client.server'
+import {getViewClient} from '~/sanity/client.server'
 
 import type {Route} from './+types/leads'
 
@@ -42,7 +42,7 @@ export async function loader({request}: Route.LoaderArgs) {
   const statusFilter = url.searchParams.get('status')
   const typeFilter = url.searchParams.get('type')
 
-  let leads = await viewClient.fetch<Lead[]>(LEADS_QUERY)
+  let leads = await getViewClient().fetch<Lead[]>(LEADS_QUERY)
 
   // Apply filters
   if (statusFilter) {
@@ -69,7 +69,7 @@ export async function action({request}: Route.ActionArgs) {
     return {error: 'Write token not configured'}
   }
 
-  const writeClient = viewClient.withConfig({token})
+  const writeClient = getViewClient().withConfig({token})
 
   switch (intent) {
     case 'updateStatus': {
@@ -79,7 +79,7 @@ export async function action({request}: Route.ActionArgs) {
     }
     case 'convertToInvestor': {
       // Get lead data
-      const lead = await viewClient.fetch<Lead>(
+      const lead = await getViewClient().fetch<Lead>(
         `*[_type == "lead" && _id == $id][0]`,
         {id: leadId}
       )

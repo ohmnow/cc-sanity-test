@@ -1,6 +1,6 @@
 import {renderToBuffer} from '@react-pdf/renderer'
 import {ProspectusDocument, type ProspectusData} from '~/lib/pdf/prospectus-template'
-import {viewClient} from '~/sanity/client.server'
+import {getViewClient} from '~/sanity/client.server'
 
 const PROSPECTUS_PDF_QUERY = `*[_type == "prospectus" && _id == $id][0]{
   _id,
@@ -38,7 +38,7 @@ export async function loader({params}: {params: {id: string}}) {
   }
 
   // Fetch prospectus data from Sanity
-  const prospectus = await viewClient.fetch<SanityProspectus | null>(
+  const prospectus = await getViewClient().fetch<SanityProspectus | null>(
     PROSPECTUS_PDF_QUERY,
     {id}
   )

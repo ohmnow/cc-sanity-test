@@ -1,4 +1,4 @@
-import {viewClient} from '~/sanity/client.server'
+import {getViewClient} from '~/sanity/client.server'
 
 const SITEMAP_QUERY = `{
   "properties": *[_type == "property" && defined(slug.current)]{
@@ -42,7 +42,7 @@ export async function loader() {
   // Fetch dynamic content from Sanity
   let dynamicData: SitemapData = {properties: [], projects: [], services: []}
   try {
-    dynamicData = await viewClient.fetch<SitemapData>(SITEMAP_QUERY)
+    dynamicData = await getViewClient().fetch<SitemapData>(SITEMAP_QUERY)
   } catch (error) {
     console.error('Error fetching sitemap data:', error)
   }
