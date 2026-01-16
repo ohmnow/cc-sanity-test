@@ -4,6 +4,7 @@ import {
   Users,
   UserCheck,
   FileText,
+  ShieldCheck,
   LogOut,
   Settings,
   Home,
@@ -41,6 +42,11 @@ const navItems = [
     href: '/admin/lois',
     label: 'Letters of Intent',
     icon: FileText,
+  },
+  {
+    href: '/admin/accreditation',
+    label: 'Accreditation',
+    icon: ShieldCheck,
   },
 ]
 

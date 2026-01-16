@@ -1,9 +1,10 @@
 import {useState} from 'react'
 import {Link, useLoaderData, useNavigate} from 'react-router'
 import {useUser} from '@clerk/react-router'
-import {ArrowLeft, AlertCircle, CheckCircle, FileText} from 'lucide-react'
+import {ArrowLeft, AlertCircle, CheckCircle, FileText, Loader2} from 'lucide-react'
 import {loadQuery} from '~/sanity/loader.server'
 import {PROSPECTUS_QUERY} from '~/sanity/queries'
+import {SignaturePad} from '~/components/SignaturePad'
 
 import type {Route} from './+types/$slug.loi'
 
@@ -58,7 +59,8 @@ export default function SubmitLOI() {
     accreditedStatus: false,
     riskAcknowledgment: false,
     termsAccepted: false,
-    signature: '',
+    signatureImage: '',
+    printedName: '',
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -114,8 +116,12 @@ export default function SubmitLOI() {
       newErrors.termsAccepted = 'You must accept the terms and conditions'
     }
 
-    if (!formData.signature.trim()) {
-      newErrors.signature = 'Please enter your digital signature'
+    if (!formData.signatureImage) {
+      newErrors.signatureImage = 'Please sign in the signature pad above'
+    }
+
+    if (!formData.printedName.trim()) {
+      newErrors.printedName = 'Please enter your full legal name'
     }
 
     setErrors(newErrors)
@@ -146,7 +152,8 @@ export default function SubmitLOI() {
           investmentAmount: Number(formData.investmentAmount),
           fundingSource: formData.fundingSource,
           investorType: formData.investorType,
-          signature: formData.signature,
+          signatureImage: formData.signatureImage,
+          printedName: formData.printedName,
           investorNotes: formData.investorNotes,
         }),
       })
@@ -485,30 +492,56 @@ export default function SubmitLOI() {
               Digital Signature
             </h2>
 
-            <div>
-              <label
-                htmlFor="signature"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Type your full legal name to sign *
-              </label>
-              <input
-                type="text"
-                id="signature"
-                name="signature"
-                value={formData.signature}
-                onChange={handleChange}
-                placeholder={user?.fullName || 'Your Full Name'}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c9a961] font-serif italic text-lg ${
-                  errors.signature ? 'border-red-500' : 'border-gray-200'
-                }`}
-              />
-              {errors.signature && (
-                <p className="text-red-500 text-sm mt-1">{errors.signature}</p>
-              )}
-              <p className="text-sm text-gray-500 mt-2">
-                By typing your name above, you are providing a legally binding electronic
-                signature.
+            <div className="space-y-4">
+              <div>
+                <SignaturePad
+                  label="Sign Here"
+                  required
+                  onSave={(dataUrl) => {
+                    setFormData((prev) => ({...prev, signatureImage: dataUrl}))
+                    if (errors.signatureImage) {
+                      setErrors((prev) => {
+                        const newErrors = {...prev}
+                        delete newErrors.signatureImage
+                        return newErrors
+                      })
+                    }
+                  }}
+                  onClear={() => {
+                    setFormData((prev) => ({...prev, signatureImage: ''}))
+                  }}
+                />
+                {errors.signatureImage && (
+                  <p className="text-red-500 text-sm mt-1">{errors.signatureImage}</p>
+                )}
+              </div>
+
+              <div>
+                <label
+                  htmlFor="printedName"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
+                  Print Full Legal Name *
+                </label>
+                <input
+                  type="text"
+                  id="printedName"
+                  name="printedName"
+                  value={formData.printedName}
+                  onChange={handleChange}
+                  placeholder={user?.fullName || 'Your Full Name'}
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c9a961] ${
+                    errors.printedName ? 'border-red-500' : 'border-gray-200'
+                  }`}
+                />
+                {errors.printedName && (
+                  <p className="text-red-500 text-sm mt-1">{errors.printedName}</p>
+                )}
+              </div>
+
+              <p className="text-sm text-gray-500">
+                By signing above and entering your name, you are providing a legally binding
+                electronic signature.
               </p>
             </div>
           </div>
@@ -526,9 +559,16 @@ export default function SubmitLOI() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="btn-gold px-8 py-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-gold px-8 py-3 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
             >
-              {isSubmitting ? 'Submitting...' : 'Submit Letter of Intent'}
+              {isSubmitting ? (
+                <>
+                  <Loader2 size={18} className="animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                'Submit Letter of Intent'
+              )}
             </button>
             <Link
               to={`/investor/opportunities/${prospectus.slug}`}

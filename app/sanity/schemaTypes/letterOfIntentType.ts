@@ -37,6 +37,7 @@ export const letterOfIntentType = defineType({
           {title: 'Submitted', value: 'submitted'},
           {title: 'Under Review', value: 'review'},
           {title: 'Approved', value: 'approved'},
+          {title: 'Countersigned', value: 'countersigned'},
           {title: 'Rejected', value: 'rejected'},
           {title: 'Withdrawn', value: 'withdrawn'},
           {title: 'Converted', value: 'converted'},
@@ -68,6 +69,8 @@ export const letterOfIntentType = defineType({
         defineField({name: 'signed', type: 'boolean', title: 'Signed'}),
         defineField({name: 'signedAt', type: 'datetime', title: 'Signed At'}),
         defineField({name: 'ipAddress', type: 'string', title: 'IP Address'}),
+        defineField({name: 'signatureImage', type: 'image', title: 'Signature Image'}),
+        defineField({name: 'printedName', type: 'string', title: 'Printed Name'}),
       ],
     }),
     defineField({
@@ -78,6 +81,11 @@ export const letterOfIntentType = defineType({
         defineField({name: 'signed', type: 'boolean', title: 'Signed'}),
         defineField({name: 'signedAt', type: 'datetime', title: 'Signed At'}),
         defineField({name: 'signedBy', type: 'reference', to: [{type: 'teamMember'}], title: 'Signed By'}),
+        defineField({name: 'signatureImage', type: 'image', title: 'Signature Image'}),
+        defineField({name: 'signerName', type: 'string', title: 'Signer Name'}),
+        defineField({name: 'signerEmail', type: 'string', title: 'Signer Email'}),
+        defineField({name: 'signerTitle', type: 'string', title: 'Signer Title'}),
+        defineField({name: 'ipAddress', type: 'string', title: 'IP Address'}),
       ],
     }),
     defineField({

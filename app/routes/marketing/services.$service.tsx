@@ -326,7 +326,7 @@ export default function ServiceDetail() {
   return (
     <div className="bg-white">
       {/* Hero Section */}
-      <section className="pt-32 pb-20 bg-[#1a1a1a]">
+      <section className="pt-40 pb-20 bg-[#1a1a1a]">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="max-w-4xl">
             <div className="flex items-center gap-3 mb-6">

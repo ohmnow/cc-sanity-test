@@ -2,6 +2,8 @@ import {ArrowRight, Award, Heart, Target, Users} from 'lucide-react'
 import {Link, useLoaderData} from 'react-router'
 import type {MetaFunction} from 'react-router'
 
+import {BreadcrumbsLight} from '~/components/Breadcrumbs'
+
 import {loadQuery} from '~/sanity/loader.server'
 import {loadQueryOptions} from '~/sanity/loadQueryOptions.server'
 import {TEAM_MEMBERS_QUERY, SITE_SETTINGS_QUERY} from '~/sanity/queries'
@@ -108,8 +110,12 @@ export default function About() {
   return (
     <div className="bg-white">
       {/* Hero Section */}
-      <section className="pt-32 pb-16 bg-[#1a1a1a]">
+      <section className="pt-40 pb-16 bg-[#1a1a1a]">
         <div className="container mx-auto px-4 lg:px-8">
+          <BreadcrumbsLight
+            items={[{label: 'About Us'}]}
+            className="mb-6"
+          />
           <div className="max-w-3xl">
             <p className="text-[#c9a961] text-sm font-medium tracking-[0.2em] uppercase mb-4">
               About Us

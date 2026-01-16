@@ -46,6 +46,8 @@ export default [
     route('admin/leads', './routes/admin/leads.tsx'),
     route('admin/investors', './routes/admin/investors.tsx'),
     route('admin/lois', './routes/admin/lois.tsx'),
+    route('admin/lois/:id/countersign', './routes/admin/lois.$id.countersign.tsx'),
+    route('admin/accreditation', './routes/admin/accreditation.tsx'),
   ]),
   // Sanity Studio
   route('studio/*', 'routes/studio.tsx'),
@@ -57,6 +59,8 @@ export default [
     route('lead', './routes/resource/lead.ts'),
     route('clerk-webhook', './routes/resource/clerk-webhook.ts'),
     route('submit-loi', './routes/resource/submit-loi.ts'),
+    route('countersign-loi', './routes/resource/countersign-loi.ts'),
+    route('upload-accreditation', './routes/resource/upload-accreditation.ts'),
     route('pdf/prospectus/:id', './routes/resource/pdf/prospectus.$id.ts'),
     route('pdf/loi/:id', './routes/resource/pdf/loi.$id.ts'),
   ]),

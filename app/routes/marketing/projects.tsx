@@ -2,6 +2,8 @@ import {ArrowRight, Calendar, MapPin, Maximize} from 'lucide-react'
 import {useCallback, useRef, useState} from 'react'
 import {Link, useLoaderData} from 'react-router'
 
+import {BreadcrumbsLight} from '~/components/Breadcrumbs'
+
 import {loadQuery} from '~/sanity/loader.server'
 import {loadQueryOptions} from '~/sanity/loadQueryOptions.server'
 import {PROJECTS_QUERY} from '~/sanity/queries'
@@ -282,8 +284,12 @@ export default function Projects() {
   return (
     <div className="bg-white">
       {/* Hero Section */}
-      <section className="pt-32 pb-16 bg-[#1a1a1a]">
+      <section className="pt-40 pb-16 bg-[#1a1a1a]">
         <div className="container mx-auto px-4 lg:px-8">
+          <BreadcrumbsLight
+            items={[{label: 'Projects'}]}
+            className="mb-6"
+          />
           <div className="max-w-3xl">
             <p className="text-[#c9a961] text-sm font-medium tracking-[0.2em] uppercase mb-4">
               Our Portfolio

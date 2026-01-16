@@ -12,6 +12,7 @@ import {
   useLoaderData,
 } from 'react-router'
 
+import {GoogleAnalytics} from '~/components/GoogleAnalytics'
 import {themePreferenceCookie} from '~/cookies'
 import {getBodyClassNames} from '~/lib/getBodyClassNames'
 import {projectDetails} from '~/sanity/projectDetails'
@@ -72,6 +73,7 @@ async function getLoaderData(request: Request) {
       VITE_SANITY_DATASET: dataset,
       VITE_SANITY_API_VERSION: apiVersion,
       SENTRY_DSN: process.env.SENTRY_DSN?.trim(),
+      GOOGLE_ANALYTICS_ID: process.env.GOOGLE_ANALYTICS_ID?.trim(),
     },
   }
 }
@@ -90,6 +92,7 @@ export function Layout({children}: {children: React.ReactNode}) {
         <link rel="icon" href="https://fav.farm/🤘" />
         <Meta />
         <Links />
+        <GoogleAnalytics gaId={ENV.GOOGLE_ANALYTICS_ID} />
       </head>
       <body className={bodyClassNames}>
         {children}

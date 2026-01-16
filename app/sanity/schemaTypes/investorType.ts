@@ -125,6 +125,101 @@ export const investorType = defineType({
       to: [{type: 'lead'}],
       description: 'Link to the original lead submission',
     }),
+    defineField({
+      name: 'accreditationDocuments',
+      title: 'Accreditation Documents',
+      type: 'array',
+      of: [
+        {
+          type: 'object',
+          name: 'accreditationDocument',
+          title: 'Document',
+          fields: [
+            defineField({
+              name: 'title',
+              type: 'string',
+              title: 'Document Title',
+              validation: (rule) => rule.required(),
+            }),
+            defineField({
+              name: 'file',
+              type: 'file',
+              title: 'File',
+              options: {
+                accept: '.pdf,.jpg,.jpeg,.png',
+              },
+              validation: (rule) => rule.required(),
+            }),
+            defineField({
+              name: 'documentType',
+              type: 'string',
+              title: 'Document Type',
+              options: {
+                list: [
+                  {title: 'CPA Letter', value: 'cpa_letter'},
+                  {title: 'Tax Return', value: 'tax_return'},
+                  {title: 'Bank Statement', value: 'bank_statement'},
+                  {title: 'Brokerage Statement', value: 'brokerage_statement'},
+                  {title: 'Third-Party Verification', value: 'third_party'},
+                  {title: 'Other', value: 'other'},
+                ],
+              },
+            }),
+            defineField({
+              name: 'uploadedAt',
+              type: 'datetime',
+              title: 'Uploaded At',
+              readOnly: true,
+            }),
+            defineField({
+              name: 'status',
+              type: 'string',
+              title: 'Review Status',
+              options: {
+                list: [
+                  {title: 'Pending Review', value: 'pending'},
+                  {title: 'Under Review', value: 'under_review'},
+                  {title: 'Approved', value: 'approved'},
+                  {title: 'Rejected', value: 'rejected'},
+                ],
+              },
+              initialValue: 'pending',
+            }),
+            defineField({
+              name: 'reviewedAt',
+              type: 'datetime',
+              title: 'Reviewed At',
+              readOnly: true,
+            }),
+            defineField({
+              name: 'reviewerNotes',
+              type: 'text',
+              title: 'Reviewer Notes',
+              rows: 2,
+            }),
+          ],
+          preview: {
+            select: {
+              title: 'title',
+              status: 'status',
+              type: 'documentType',
+            },
+            prepare({title, status, type}) {
+              const statusLabels: Record<string, string> = {
+                pending: 'Pending',
+                under_review: 'Under Review',
+                approved: 'Approved',
+                rejected: 'Rejected',
+              }
+              return {
+                title: title || 'Untitled Document',
+                subtitle: `${type || 'Document'} • ${statusLabels[status] || status}`,
+              }
+            },
+          },
+        },
+      ],
+    }),
   ],
   preview: {
     select: {

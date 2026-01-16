@@ -81,12 +81,68 @@ export const meta: Route.MetaFunction = ({data}) => {
     project.description ||
     `${project.title} - A ${project.projectType || 'renovation'} project in ${project.location || 'San Francisco Bay Area'}`
 
+  // Schema.org Product/Service structured data for renovation project
+  const schemaData = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: project.title,
+    description: description,
+    url: `https://goldengateadvisors.com/projects/${project.slug}`,
+    brand: {
+      '@type': 'Organization',
+      name: 'Golden Gate Home Advisors',
+      url: 'https://goldengateadvisors.com',
+    },
+    category: project.projectType || 'Home Renovation',
+    ...(project.location && {
+      areaServed: {
+        '@type': 'Place',
+        name: project.location,
+      },
+    }),
+    ...(project.completedDate && {
+      productionDate: project.completedDate,
+    }),
+    ...(project.roi && {
+      additionalProperty: [
+        {
+          '@type': 'PropertyValue',
+          name: 'Return on Investment',
+          value: project.roi,
+        },
+        ...(project.timeline ? [{
+          '@type': 'PropertyValue',
+          name: 'Project Timeline',
+          value: project.timeline,
+        }] : []),
+        ...(project.budget ? [{
+          '@type': 'PropertyValue',
+          name: 'Project Budget',
+          value: project.budget,
+        }] : []),
+      ],
+    }),
+    provider: {
+      '@type': 'LocalBusiness',
+      name: 'Golden Gate Home Advisors',
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: 'San Francisco',
+        addressRegion: 'CA',
+        addressCountry: 'US',
+      },
+    },
+  }
+
   return [
     {title: `${project.title} | Projects | Golden Gate Home Advisors`},
     {name: 'description', content: description},
     {property: 'og:title', content: `${project.title} | Golden Gate Home Advisors`},
     {property: 'og:description', content: description},
     {property: 'og:type', content: 'website'},
+    {
+      'script:ld+json': schemaData,
+    },
   ]
 }
 
@@ -264,7 +320,7 @@ export default function ProjectDetail() {
   return (
     <div className="bg-white">
       {/* Hero Section */}
-      <section className="pt-32 pb-20 bg-[#1a1a1a]">
+      <section className="pt-40 pb-20 bg-[#1a1a1a]">
         <div className="container mx-auto px-4 lg:px-8">
           <Link
             to="/projects"

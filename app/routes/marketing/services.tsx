@@ -2,6 +2,8 @@ import {ArrowRight, Building2, Home, TrendingUp, type LucideIcon} from 'lucide-r
 import {Link, useLoaderData} from 'react-router'
 import type {MetaFunction} from 'react-router'
 
+import {BreadcrumbsLight} from '~/components/Breadcrumbs'
+
 import {loadQuery} from '~/sanity/loader.server'
 import {loadQueryOptions} from '~/sanity/loadQueryOptions.server'
 import {SERVICES_QUERY} from '~/sanity/queries'
@@ -30,6 +32,63 @@ export async function loader({request}: Route.LoaderArgs) {
 }
 
 export const meta: MetaFunction = () => {
+  // Schema.org Service structured data
+  const schemaData = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Real Estate Services',
+    description: 'Comprehensive real estate services for Bay Area buyers, sellers, and investors.',
+    url: 'https://goldengateadvisors.com/services',
+    numberOfItems: 3,
+    itemListElement: [
+      {
+        '@type': 'Service',
+        position: 1,
+        name: 'Buyer Representation',
+        description: 'Find your dream home with expert guidance through the competitive Bay Area market.',
+        provider: {
+          '@type': 'LocalBusiness',
+          name: 'Golden Gate Home Advisors',
+        },
+        areaServed: {
+          '@type': 'Place',
+          name: 'San Francisco Bay Area',
+        },
+        serviceType: 'Real Estate Buyer Agent',
+      },
+      {
+        '@type': 'Service',
+        position: 2,
+        name: 'Seller Representation',
+        description: 'Maximize your property value with strategic marketing and expert pricing.',
+        provider: {
+          '@type': 'LocalBusiness',
+          name: 'Golden Gate Home Advisors',
+        },
+        areaServed: {
+          '@type': 'Place',
+          name: 'San Francisco Bay Area',
+        },
+        serviceType: 'Real Estate Listing Agent',
+      },
+      {
+        '@type': 'Service',
+        position: 3,
+        name: 'Investment Advisory',
+        description: 'Build wealth through strategic real estate investments and development projects.',
+        provider: {
+          '@type': 'LocalBusiness',
+          name: 'Golden Gate Home Advisors',
+        },
+        areaServed: {
+          '@type': 'Place',
+          name: 'San Francisco Bay Area',
+        },
+        serviceType: 'Real Estate Investment Advisory',
+      },
+    ],
+  }
+
   return [
     {title: 'Our Services | Golden Gate Home Advisors'},
     {
@@ -43,6 +102,9 @@ export const meta: MetaFunction = () => {
       content: 'Expert real estate services for buyers, sellers, and investors in the Bay Area.',
     },
     {property: 'og:type', content: 'website'},
+    {
+      'script:ld+json': schemaData,
+    },
   ]
 }
 
@@ -99,8 +161,12 @@ export default function Services() {
   return (
     <div className="bg-white">
       {/* Hero Section */}
-      <section className="pt-32 pb-16 bg-[#1a1a1a]">
+      <section className="pt-40 pb-16 bg-[#1a1a1a]">
         <div className="container mx-auto px-4 lg:px-8">
+          <BreadcrumbsLight
+            items={[{label: 'Services'}]}
+            className="mb-6"
+          />
           <div className="max-w-3xl">
             <p className="text-[#c9a961] text-sm font-medium tracking-[0.2em] uppercase mb-4">
               Our Services

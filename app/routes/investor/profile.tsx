@@ -1,3 +1,4 @@
+import {useState, useRef} from 'react'
 import {getAuth} from '@clerk/react-router/server'
 import {useUser} from '@clerk/react-router'
 import {Form, useActionData, useLoaderData, useNavigation} from 'react-router'
@@ -13,12 +14,25 @@ import {
   Clock,
   AlertCircle,
   Loader2,
+  Upload,
+  FileText,
+  Download,
+  X,
 } from 'lucide-react'
 import {loadQuery} from '~/sanity/loader.server'
-import {INVESTOR_BY_CLERK_ID_QUERY} from '~/sanity/queries'
 import {getViewClient} from '~/sanity/client.server'
 
 import type {Route} from './+types/profile'
+
+interface AccreditationDocument {
+  _key: string
+  title: string
+  documentType?: string
+  uploadedAt?: string
+  status?: string
+  reviewerNotes?: string
+  fileUrl?: string
+}
 
 interface Investor {
   _id: string
@@ -30,7 +44,29 @@ interface Investor {
   investmentCapacity?: string
   investmentInterests?: string[]
   status?: string
+  accreditationDocuments?: AccreditationDocument[]
 }
+
+const INVESTOR_PROFILE_QUERY = `*[_type == "investor" && clerkId == $clerkId][0]{
+  _id,
+  name,
+  email,
+  phone,
+  company,
+  accreditedStatus,
+  investmentCapacity,
+  investmentInterests,
+  status,
+  accreditationDocuments[]{
+    _key,
+    title,
+    documentType,
+    uploadedAt,
+    status,
+    reviewerNotes,
+    "fileUrl": file.asset->url
+  }
+}`
 
 export async function loader(args: Route.LoaderArgs) {
   const {userId} = await getAuth(args)
@@ -41,7 +77,7 @@ export async function loader(args: Route.LoaderArgs) {
 
   // Fetch investor record from Sanity
   const {data: investor} = await loadQuery<Investor | null>(
-    INVESTOR_BY_CLERK_ID_QUERY,
+    INVESTOR_PROFILE_QUERY,
     {clerkId: userId}
   )
 
@@ -436,6 +472,12 @@ export default function InvestorProfile() {
               </div>
             </Form>
 
+            {/* Accreditation Documents */}
+            <AccreditationDocumentsSection
+              investorId={investor?._id || ''}
+              documents={investor?.accreditationDocuments || []}
+            />
+
             {/* Account Settings */}
             <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
               <h3 className="font-display text-lg text-[#1a1a1a] mb-4">
@@ -465,6 +507,287 @@ export default function InvestorProfile() {
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+// Document type labels
+const documentTypeLabels: Record<string, string> = {
+  cpa_letter: 'CPA Letter',
+  tax_return: 'Tax Return',
+  bank_statement: 'Bank Statement',
+  brokerage_statement: 'Brokerage Statement',
+  third_party: 'Third-Party Verification',
+  other: 'Other',
+}
+
+// Document status badges
+function getDocumentStatusBadge(status?: string) {
+  switch (status) {
+    case 'approved':
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">
+          <CheckCircle size={12} />
+          Approved
+        </span>
+      )
+    case 'under_review':
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
+          <Clock size={12} />
+          Under Review
+        </span>
+      )
+    case 'rejected':
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-medium">
+          <X size={12} />
+          Rejected
+        </span>
+      )
+    default:
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-medium">
+          <Clock size={12} />
+          Pending
+        </span>
+      )
+  }
+}
+
+function AccreditationDocumentsSection({
+  investorId,
+  documents,
+}: {
+  investorId: string
+  documents: AccreditationDocument[]
+}) {
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadError, setUploadError] = useState('')
+  const [uploadSuccess, setUploadSuccess] = useState('')
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [title, setTitle] = useState('')
+  const [documentType, setDocumentType] = useState('other')
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      // Validate file size (10MB max)
+      if (file.size > 10 * 1024 * 1024) {
+        setUploadError('File size must be less than 10MB')
+        return
+      }
+      // Validate file type
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg']
+      if (!allowedTypes.includes(file.type)) {
+        setUploadError('File type must be PDF, JPG, or PNG')
+        return
+      }
+      setSelectedFile(file)
+      setUploadError('')
+      // Auto-populate title with filename
+      if (!title) {
+        setTitle(file.name.replace(/\.[^/.]+$/, ''))
+      }
+    }
+  }
+
+  const handleUpload = async () => {
+    if (!selectedFile || !title || !investorId) {
+      setUploadError('Please provide a document title and select a file')
+      return
+    }
+
+    setIsUploading(true)
+    setUploadError('')
+    setUploadSuccess('')
+
+    try {
+      const formData = new FormData()
+      formData.append('file', selectedFile)
+      formData.append('title', title)
+      formData.append('documentType', documentType)
+      formData.append('investorId', investorId)
+
+      const response = await fetch('/resource/upload-accreditation', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Upload failed')
+      }
+
+      setUploadSuccess('Document uploaded successfully. Refreshing...')
+      setSelectedFile(null)
+      setTitle('')
+      setDocumentType('other')
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+
+      // Refresh the page to show the new document
+      setTimeout(() => {
+        window.location.reload()
+      }, 1500)
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : 'Upload failed')
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  return (
+    <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm">
+      <h3 className="font-display text-lg text-[#1a1a1a] mb-2">
+        Accreditation Documents
+      </h3>
+      <p className="text-sm text-gray-500 mb-6">
+        Upload documents to verify your accredited investor status. Accepted formats: PDF, JPG, PNG (max 10MB).
+      </p>
+
+      {/* Upload Form */}
+      <div className="bg-gray-50 rounded-lg p-4 mb-6">
+        <div className="grid sm:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Document Title
+            </label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g., 2024 Tax Return"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#c9a961] focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Document Type
+            </label>
+            <select
+              value={documentType}
+              onChange={(e) => setDocumentType(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#c9a961] focus:border-transparent"
+            >
+              <option value="cpa_letter">CPA Letter</option>
+              <option value="tax_return">Tax Return</option>
+              <option value="bank_statement">Bank Statement</option>
+              <option value="brokerage_statement">Brokerage Statement</option>
+              <option value="third_party">Third-Party Verification</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Select File
+          </label>
+          <div className="flex items-center gap-3">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png"
+              onChange={handleFileSelect}
+              className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:font-medium file:bg-[#c9a961] file:text-white hover:file:bg-[#b8994f]"
+            />
+          </div>
+          {selectedFile && (
+            <p className="mt-1 text-sm text-gray-500">
+              Selected: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+            </p>
+          )}
+        </div>
+
+        {uploadError && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700 text-sm">
+            <AlertCircle size={16} />
+            {uploadError}
+          </div>
+        )}
+
+        {uploadSuccess && (
+          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2 text-green-700 text-sm">
+            <CheckCircle size={16} />
+            {uploadSuccess}
+          </div>
+        )}
+
+        <button
+          onClick={handleUpload}
+          disabled={isUploading || !selectedFile || !title}
+          className="flex items-center gap-2 px-4 py-2 bg-[#c9a961] text-white rounded-lg font-medium hover:bg-[#b8994f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isUploading ? (
+            <>
+              <Loader2 size={16} className="animate-spin" />
+              Uploading...
+            </>
+          ) : (
+            <>
+              <Upload size={16} />
+              Upload Document
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* Uploaded Documents List */}
+      {documents.length > 0 ? (
+        <div className="space-y-3">
+          <h4 className="font-medium text-[#1a1a1a]">Uploaded Documents</h4>
+          {documents.map((doc) => (
+            <div
+              key={doc._key}
+              className="flex items-center justify-between p-3 border border-gray-200 rounded-lg"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center">
+                  <FileText size={20} className="text-gray-500" />
+                </div>
+                <div>
+                  <p className="font-medium text-[#1a1a1a]">{doc.title}</p>
+                  <p className="text-xs text-gray-500">
+                    {documentTypeLabels[doc.documentType || 'other'] || 'Document'}
+                    {doc.uploadedAt && (
+                      <> &bull; {new Date(doc.uploadedAt).toLocaleDateString()}</>
+                    )}
+                  </p>
+                  {doc.status === 'rejected' && doc.reviewerNotes && (
+                    <p className="text-xs text-red-600 mt-1">
+                      Note: {doc.reviewerNotes}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                {getDocumentStatusBadge(doc.status)}
+                {doc.fileUrl && (
+                  <a
+                    href={doc.fileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 text-gray-400 hover:text-[#c9a961] transition-colors"
+                    title="Download"
+                  >
+                    <Download size={16} />
+                  </a>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-6 text-gray-500">
+          <FileText className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+          <p>No documents uploaded yet</p>
+          <p className="text-sm">Upload your first accreditation document above</p>
+        </div>
+      )}
     </div>
   )
 }

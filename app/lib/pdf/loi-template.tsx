@@ -5,6 +5,7 @@ import {
   View,
   StyleSheet,
   Font,
+  Image,
 } from '@react-pdf/renderer'
 
 Font.register({
@@ -222,7 +223,7 @@ const styles = StyleSheet.create({
 
 interface LOIData {
   loiId: string
-  status: 'submitted' | 'review' | 'approved' | 'rejected'
+  status: 'submitted' | 'review' | 'approved' | 'rejected' | 'countersigned'
   submittedAt: string
   reviewedAt?: string
   investmentAmount: number
@@ -239,6 +240,17 @@ interface LOIData {
     minimumInvestment?: number
     propertyType?: string
     location?: string
+  }
+  investorSignature?: {
+    printedName?: string
+    signedAt?: string
+    signatureImageUrl?: string
+  }
+  companySignature?: {
+    signerName?: string
+    signerTitle?: string
+    signedAt?: string
+    signatureImageUrl?: string
   }
   countersignedBy?: string
   countersignedAt?: string
@@ -269,6 +281,8 @@ function getStatusLabel(status: string): string {
       return 'UNDER REVIEW'
     case 'approved':
       return 'APPROVED'
+    case 'countersigned':
+      return 'FULLY EXECUTED'
     case 'rejected':
       return 'DECLINED'
     default:
@@ -283,7 +297,8 @@ export function LOIDocument({data}: {data: LOIData}) {
     day: 'numeric',
   })
 
-  const isApproved = data.status === 'approved'
+  const isApproved = data.status === 'approved' || data.status === 'countersigned'
+  const isCountersigned = data.status === 'countersigned'
   const isPending = data.status === 'submitted' || data.status === 'review'
 
   return (
@@ -307,7 +322,7 @@ export function LOIDocument({data}: {data: LOIData}) {
             styles.statusBadge,
             data.status === 'submitted' || data.status === 'review'
               ? styles.statusSubmitted
-              : data.status === 'approved'
+              : data.status === 'approved' || data.status === 'countersigned'
                 ? styles.statusApproved
                 : styles.statusRejected,
           ]}
@@ -317,7 +332,7 @@ export function LOIDocument({data}: {data: LOIData}) {
               styles.statusText,
               data.status === 'submitted' || data.status === 'review'
                 ? styles.statusTextSubmitted
-                : data.status === 'approved'
+                : data.status === 'approved' || data.status === 'countersigned'
                   ? styles.statusTextApproved
                   : styles.statusTextRejected,
             ]}
@@ -454,18 +469,56 @@ export function LOIDocument({data}: {data: LOIData}) {
             {/* Investor Signature */}
             <View style={styles.signatureBlock}>
               <Text style={styles.signatureLabel}>INVESTOR</Text>
-              <View style={styles.signatureLine} />
-              <Text style={styles.signatureName}>{data.investor.name}</Text>
+              {data.investorSignature?.signatureImageUrl ? (
+                <View style={{height: 40, marginBottom: 5}}>
+                  <Image
+                    src={data.investorSignature.signatureImageUrl}
+                    style={{maxHeight: 40, objectFit: 'contain'}}
+                  />
+                </View>
+              ) : (
+                <View style={styles.signatureLine} />
+              )}
+              <Text style={styles.signatureName}>
+                {data.investorSignature?.printedName || data.investor.name}
+              </Text>
               <Text style={styles.signatureDate}>
-                Date: {formatDate(data.submittedAt)}
+                Date: {data.investorSignature?.signedAt
+                  ? formatDate(data.investorSignature.signedAt)
+                  : formatDate(data.submittedAt)}
               </Text>
             </View>
 
             {/* Company Countersignature */}
             <View style={styles.signatureBlock}>
               <Text style={styles.signatureLabel}>GOLDEN GATE HOME ADVISORS</Text>
-              <View style={styles.signatureLine} />
-              {isApproved && data.countersignedBy ? (
+              {isCountersigned && data.companySignature?.signatureImageUrl ? (
+                <View style={{height: 40, marginBottom: 5}}>
+                  <Image
+                    src={data.companySignature.signatureImageUrl}
+                    style={{maxHeight: 40, objectFit: 'contain'}}
+                  />
+                </View>
+              ) : (
+                <View style={styles.signatureLine} />
+              )}
+              {isCountersigned && data.companySignature?.signerName ? (
+                <>
+                  <Text style={styles.signatureName}>
+                    {data.companySignature.signerName}
+                  </Text>
+                  {data.companySignature.signerTitle && (
+                    <Text style={{fontSize: 9, color: '#666'}}>
+                      {data.companySignature.signerTitle}
+                    </Text>
+                  )}
+                  <Text style={styles.signatureDate}>
+                    Date: {data.companySignature.signedAt
+                      ? formatDate(data.companySignature.signedAt)
+                      : 'Pending'}
+                  </Text>
+                </>
+              ) : isApproved && data.countersignedBy ? (
                 <>
                   <Text style={styles.signatureName}>{data.countersignedBy}</Text>
                   <Text style={styles.signatureDate}>

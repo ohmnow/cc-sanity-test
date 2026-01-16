@@ -5,7 +5,7 @@ export default function GetStartedSuccess() {
   return (
     <div className="bg-white min-h-screen">
       {/* Hero Section */}
-      <section className="pt-32 pb-16 bg-[#1a1a1a]">
+      <section className="pt-40 pb-16 bg-[#1a1a1a]">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
             <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">

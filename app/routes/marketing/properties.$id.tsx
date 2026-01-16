@@ -81,6 +81,46 @@ export const meta: Route.MetaFunction = ({data}) => {
     ? `${property.address.neighborhood}, ${property.address.city}`
     : 'Bay Area'
 
+  // Schema.org RealEstateListing structured data
+  const schemaData = {
+    '@context': 'https://schema.org',
+    '@type': 'RealEstateListing',
+    name: property.title,
+    description: property.description || `${property.bedrooms} bed, ${property.bathrooms} bath property in ${location}`,
+    url: `https://goldengateadvisors.com/properties/${property.slug}`,
+    datePosted: new Date().toISOString().split('T')[0],
+    ...(property.address && {
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: property.address.street,
+        addressLocality: property.address.city,
+        addressRegion: property.address.state,
+        postalCode: property.address.zip,
+        addressCountry: 'US',
+      },
+    }),
+    offers: {
+      '@type': 'Offer',
+      price: property.price,
+      priceCurrency: 'USD',
+      availability: property.status === 'for-sale' || property.status === 'available'
+        ? 'https://schema.org/InStock'
+        : 'https://schema.org/SoldOut',
+    },
+    ...(property.squareFeet && {
+      floorSize: {
+        '@type': 'QuantitativeValue',
+        value: property.squareFeet,
+        unitCode: 'FTK',
+      },
+    }),
+    numberOfRooms: property.bedrooms + property.bathrooms,
+    numberOfBedrooms: property.bedrooms,
+    numberOfBathroomsTotal: property.bathrooms,
+    ...(property.yearBuilt && {yearBuilt: property.yearBuilt}),
+    ...(property.propertyType && {propertyType: property.propertyType}),
+  }
+
   return [
     {title: `${property.title} | Golden Gate Home Advisors`},
     {
@@ -93,6 +133,9 @@ export const meta: Route.MetaFunction = ({data}) => {
       content: `${property.bedrooms} bed, ${property.bathrooms} bath property in ${location}. Listed at ${formatPrice(property.price)}.`,
     },
     {property: 'og:type', content: 'website'},
+    {
+      'script:ld+json': schemaData,
+    },
   ]
 }
 

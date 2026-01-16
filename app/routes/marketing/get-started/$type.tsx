@@ -1,4 +1,4 @@
-import {ArrowRight, Building2, Home, TrendingUp} from 'lucide-react'
+import {ArrowRight, Building2, Home, TrendingUp, Loader2} from 'lucide-react'
 import {Form, useActionData, useNavigation, useParams, redirect} from 'react-router'
 
 import type {Route} from './+types/$type'
@@ -166,7 +166,7 @@ export default function GetStartedType() {
   return (
     <div className="bg-white">
       {/* Hero Section */}
-      <section className="pt-32 pb-16 bg-[#1a1a1a]">
+      <section className="pt-40 pb-16 bg-[#1a1a1a]">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
             <div className="w-20 h-20 bg-[#c9a961] rounded-xl flex items-center justify-center mx-auto mb-6">
@@ -303,8 +303,17 @@ export default function GetStartedType() {
                   disabled={isSubmitting}
                   className="w-full btn-gold px-8 py-4 rounded-lg inline-flex items-center justify-center gap-2 text-base font-semibold disabled:opacity-50"
                 >
-                  {isSubmitting ? 'Submitting...' : 'Submit Request'}
-                  <ArrowRight size={18} />
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 size={18} className="animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      Submit Request
+                      <ArrowRight size={18} />
+                    </>
+                  )}
                 </button>
 
                 <p className="text-center text-sm text-gray-500">

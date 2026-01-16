@@ -1,4 +1,4 @@
-import {Form, Link, useLoaderData, useSearchParams} from 'react-router'
+import {Form, Link, useLoaderData, useSearchParams, useNavigation} from 'react-router'
 import {
   FileText,
   Filter,
@@ -11,6 +11,8 @@ import {
   Eye,
   Building,
   User,
+  Loader2,
+  PenLine,
 } from 'lucide-react'
 import {sendLoiStatusUpdateEmail} from '~/lib/email.server'
 import {getViewClient} from '~/sanity/client.server'
@@ -212,6 +214,13 @@ function getStatusBadge(status: string) {
           Approved
         </span>
       )
+    case 'countersigned':
+      return (
+        <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium flex items-center gap-1">
+          <FileText size={12} />
+          Countersigned
+        </span>
+      )
     case 'rejected':
       return (
         <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium flex items-center gap-1">
@@ -231,8 +240,16 @@ function getStatusBadge(status: string) {
 export default function AdminLOIs() {
   const {lois, stats} = useLoaderData<typeof loader>()
   const [searchParams] = useSearchParams()
+  const navigation = useNavigation()
 
   const statusFilter = searchParams.get('status') || ''
+
+  // Check if a specific LOI action is being submitted
+  const isSubmittingLoi = (loiId: string, intent: string) => {
+    if (navigation.state !== 'submitting') return false
+    const formData = navigation.formData
+    return formData?.get('loiId') === loiId && formData?.get('intent') === intent
+  }
 
   return (
     <div>
@@ -446,10 +463,15 @@ export default function AdminLOIs() {
                             <input type="hidden" name="intent" value="approve" />
                             <button
                               type="submit"
-                              className="flex items-center gap-1 px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg transition-colors"
+                              disabled={isSubmittingLoi(loi._id, 'approve')}
+                              className="flex items-center gap-1 px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
                             >
-                              <CheckCircle size={14} />
-                              Approve
+                              {isSubmittingLoi(loi._id, 'approve') ? (
+                                <Loader2 size={14} className="animate-spin" />
+                              ) : (
+                                <CheckCircle size={14} />
+                              )}
+                              {isSubmittingLoi(loi._id, 'approve') ? 'Approving...' : 'Approve'}
                             </button>
                           </Form>
                           <Form method="post" className="inline">
@@ -457,10 +479,15 @@ export default function AdminLOIs() {
                             <input type="hidden" name="intent" value="reject" />
                             <button
                               type="submit"
-                              className="flex items-center gap-1 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors"
+                              disabled={isSubmittingLoi(loi._id, 'reject')}
+                              className="flex items-center gap-1 px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
                             >
-                              <XCircle size={14} />
-                              Reject
+                              {isSubmittingLoi(loi._id, 'reject') ? (
+                                <Loader2 size={14} className="animate-spin" />
+                              ) : (
+                                <XCircle size={14} />
+                              )}
+                              {isSubmittingLoi(loi._id, 'reject') ? 'Rejecting...' : 'Reject'}
                             </button>
                           </Form>
                         </>
@@ -484,9 +511,22 @@ export default function AdminLOIs() {
                             <option value="submitted">Pending</option>
                             <option value="review">In Review</option>
                             <option value="approved">Approved</option>
+                            <option value="countersigned">Countersigned</option>
                             <option value="rejected">Rejected</option>
                           </select>
                         </Form>
+                      )}
+
+                      {/* Countersign Button for Approved LOIs */}
+                      {loi.status === 'approved' && (
+                        <Link
+                          to={`/admin/lois/${loi._id}/countersign`}
+                          className="flex items-center gap-1 px-3 py-1.5 bg-[#c9a961] hover:bg-[#b8994d] text-white text-sm font-medium rounded-lg transition-colors"
+                          title="Countersign LOI"
+                        >
+                          <PenLine size={14} />
+                          Countersign
+                        </Link>
                       )}
 
                       {/* Download PDF */}

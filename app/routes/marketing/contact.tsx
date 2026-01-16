@@ -1,7 +1,9 @@
-import {ArrowRight, Mail, MapPin, Phone, Clock} from 'lucide-react'
+import {ArrowRight, Loader2, Mail, MapPin, Phone, Clock} from 'lucide-react'
 import {Form, useActionData, useNavigation} from 'react-router'
 import type {MetaFunction} from 'react-router'
 import {useState} from 'react'
+
+import {BreadcrumbsLight} from '~/components/Breadcrumbs'
 
 import type {Route} from './+types/contact'
 
@@ -49,8 +51,12 @@ export default function Contact() {
   return (
     <div className="bg-white">
       {/* Hero Section */}
-      <section className="pt-32 pb-16 bg-[#1a1a1a]">
+      <section className="pt-40 pb-16 bg-[#1a1a1a]">
         <div className="container mx-auto px-4 lg:px-8">
+          <BreadcrumbsLight
+            items={[{label: 'Contact'}]}
+            className="mb-6"
+          />
           <div className="max-w-3xl">
             <p className="text-[#c9a961] text-sm font-medium tracking-[0.2em] uppercase mb-4">
               Contact Us
@@ -241,8 +247,17 @@ export default function Contact() {
                       disabled={isSubmitting}
                       className="w-full btn-gold px-8 py-4 rounded-lg inline-flex items-center justify-center gap-2 text-base font-semibold disabled:opacity-50"
                     >
-                      {isSubmitting ? 'Sending...' : 'Send Message'}
-                      <ArrowRight size={18} />
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 size={18} className="animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          Send Message
+                          <ArrowRight size={18} />
+                        </>
+                      )}
                     </button>
                   </Form>
                 )}

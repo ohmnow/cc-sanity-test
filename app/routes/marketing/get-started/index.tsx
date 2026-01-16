@@ -29,7 +29,7 @@ export default function GetStarted() {
   return (
     <div className="bg-white">
       {/* Hero Section */}
-      <section className="pt-32 pb-16 bg-[#1a1a1a]">
+      <section className="pt-40 pb-16 bg-[#1a1a1a]">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
             <p className="text-[#c9a961] text-sm font-medium tracking-[0.2em] uppercase mb-4">

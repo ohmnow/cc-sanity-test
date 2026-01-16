@@ -12,6 +12,20 @@ const LOI_PDF_QUERY = `*[_type == "letterOfIntent" && _id == $id][0]{
   submittedAt,
   reviewedAt,
   investorNotes,
+  investorSignature {
+    signed,
+    signedAt,
+    printedName,
+    "signatureImageUrl": signatureImage.asset->url
+  },
+  companySignature {
+    signed,
+    signedAt,
+    signerName,
+    signerTitle,
+    signerEmail,
+    "signatureImageUrl": signatureImage.asset->url
+  },
   "investor": investor->{
     _id,
     name,
@@ -34,11 +48,25 @@ const LOI_PDF_QUERY = `*[_type == "letterOfIntent" && _id == $id][0]{
 
 interface SanityLOI {
   _id: string
-  status: 'submitted' | 'review' | 'approved' | 'rejected'
+  status: 'submitted' | 'review' | 'approved' | 'rejected' | 'countersigned'
   investmentAmount: number
   submittedAt: string
   reviewedAt?: string
   investorNotes?: string
+  investorSignature?: {
+    signed?: boolean
+    signedAt?: string
+    printedName?: string
+    signatureImageUrl?: string
+  }
+  companySignature?: {
+    signed?: boolean
+    signedAt?: string
+    signerName?: string
+    signerTitle?: string
+    signerEmail?: string
+    signatureImageUrl?: string
+  }
   investor: {
     _id: string
     name: string
@@ -102,6 +130,17 @@ export async function loader(args: Route.LoaderArgs) {
       propertyType: loi.prospectus?.propertyType,
       location: loi.prospectus?.location,
     },
+    investorSignature: loi.investorSignature ? {
+      printedName: loi.investorSignature.printedName,
+      signedAt: loi.investorSignature.signedAt,
+      signatureImageUrl: loi.investorSignature.signatureImageUrl,
+    } : undefined,
+    companySignature: loi.companySignature ? {
+      signerName: loi.companySignature.signerName,
+      signerTitle: loi.companySignature.signerTitle,
+      signedAt: loi.companySignature.signedAt,
+      signatureImageUrl: loi.companySignature.signatureImageUrl,
+    } : undefined,
     countersignedBy: loi.countersignedBy,
     countersignedAt: loi.countersignedAt,
   }

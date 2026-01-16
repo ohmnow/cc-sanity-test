@@ -46,8 +46,44 @@ interface LOISubmission {
   investmentAmount: number
   fundingSource: string
   investorType: string
-  signature: string
+  signatureImage: string
+  printedName: string
   investorNotes?: string
+}
+
+// Helper to upload base64 image to Sanity
+async function uploadSignatureImage(
+  client: SanityClient,
+  base64Data: string,
+  filename: string
+): Promise<{_type: 'image'; asset: {_type: 'reference'; _ref: string}} | null> {
+  try {
+    // Extract base64 data (remove data URL prefix if present)
+    const base64Match = base64Data.match(/^data:image\/\w+;base64,(.+)$/)
+    if (!base64Match) {
+      console.error('Invalid base64 image format')
+      return null
+    }
+
+    const buffer = Buffer.from(base64Match[1], 'base64')
+
+    // Upload to Sanity
+    const asset = await client.assets.upload('image', buffer, {
+      filename,
+      contentType: 'image/png',
+    })
+
+    return {
+      _type: 'image',
+      asset: {
+        _type: 'reference',
+        _ref: asset._id,
+      },
+    }
+  } catch (error) {
+    console.error('Failed to upload signature image:', error)
+    return null
+  }
 }
 
 export async function action({request}: Route.ActionArgs) {
@@ -72,7 +108,7 @@ export async function action({request}: Route.ActionArgs) {
     const data: LOISubmission = await request.json()
 
     // Validate required fields
-    if (!data.clerkId || !data.prospectusSlug || !data.investmentAmount || !data.signature) {
+    if (!data.clerkId || !data.prospectusSlug || !data.investmentAmount || !data.signatureImage || !data.printedName) {
       return Response.json({error: 'Missing required fields'}, {status: 400})
     }
 
@@ -123,6 +159,13 @@ export async function action({request}: Route.ActionArgs) {
                       request.headers.get('x-real-ip') ||
                       'unknown'
 
+    // Upload signature image to Sanity
+    const signatureImageAsset = await uploadSignatureImage(
+      getWriteClient(),
+      data.signatureImage,
+      `signature-${investor._id}-${Date.now()}.png`
+    )
+
     // Create the LOI document
     const loi = {
       _type: 'letterOfIntent',
@@ -142,6 +185,8 @@ export async function action({request}: Route.ActionArgs) {
         signed: true,
         signedAt: new Date().toISOString(),
         ipAddress,
+        printedName: data.printedName,
+        ...(signatureImageAsset && {signatureImage: signatureImageAsset}),
       },
     }
 
