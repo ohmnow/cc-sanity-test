@@ -1,21 +1,21 @@
 # Deployment Progress & Issues Report
 
 **Date:** January 15-16, 2026
-**Status:** ✅ Both Local and Production Working
+**Status:** ✅ All Features Working (Local & Production)
 
 ---
 
-## Current Status Summary
+## Final Status
 
-| Feature | Local | Production | Notes |
-|---------|-------|------------|-------|
-| Marketing pages | ✅ Working | ✅ Working | All pages load correctly |
-| Sanity Studio | ✅ Working | ✅ Working | Full functionality |
-| Visual Editing (Presentation) | ✅ Working | ✅ Working | Fixed in session 2 |
-| Admin Portal | ✅ Working | ⚠️ Password issue | See note below |
-| Investor Portal | ✅ Working | ✅ Working | Clerk auth working |
+| Feature | Local | Production |
+|---------|-------|------------|
+| Marketing pages | ✅ Working | ✅ Working |
+| Sanity Studio | ✅ Working | ✅ Working |
+| Visual Editing (Presentation) | ✅ Working | ✅ Working |
+| Admin Portal | ✅ Working | ✅ Working |
+| Investor Portal | ✅ Working | ✅ Working |
 
-**Admin Portal Note:** The code is working correctly. If login fails in production, ensure the `ADMIN_PASSWORD` env var in Vercel matches the password you're entering. Default is `admin123` if not set.
+**Production URL:** https://sanity-zeta-fawn.vercel.app
 
 ---
 
@@ -93,6 +93,31 @@ const rawPassword = process.env.ADMIN_PASSWORD
 const adminPassword = rawPassword?.trim() || 'admin123'
 ```
 
+### Fix 6: Replace viewClient Proxy with Direct Function Calls
+
+**Problem:** The `viewClient` Proxy pattern was causing 500 errors on the Admin dashboard in production. The Proxy intercepts property access but doesn't work reliably in Vercel's serverless environment.
+
+**Solution:** Replaced all `viewClient` imports with `getViewClient()` function calls:
+```typescript
+// Before - using Proxy
+import {viewClient} from '~/sanity/client.server'
+const data = await viewClient.fetch(query)
+
+// After - direct function call
+import {getViewClient} from '~/sanity/client.server'
+const data = await getViewClient().fetch(query)
+```
+
+**Files updated:**
+- `app/routes/admin/index.tsx`
+- `app/routes/admin/leads.tsx`
+- `app/routes/admin/investors.tsx`
+- `app/routes/admin/lois.tsx`
+- `app/routes/sitemap[.]xml.ts`
+- `app/routes/resource/og.ts`
+- `app/routes/resource/pdf/loi.$id.ts`
+- `app/routes/resource/pdf/prospectus.$id.ts`
+
 ---
 
 ## Session 1 Fixes (January 15, 2026)
@@ -102,12 +127,6 @@ const adminPassword = rawPassword?.trim() || 'admin123'
 1. **React Router Middleware Error:** Disabled `v8_middleware` flag
 2. **Invalid Authorization Header:** Added token sanitization
 3. **Module-level initialization failures:** Converted to lazy initialization
-
-See original documentation below for details.
-
----
-
-## Original Documentation (Session 1)
 
 ### The Production Problem
 
@@ -131,7 +150,7 @@ TypeError [ERR_INVALID_CHAR]: Invalid character in header content ["authorizatio
 ### Key Architecture Changes
 
 1. **Disabled v8_middleware** in `react-router.config.ts`
-2. **Changed Clerk import** to deprecated `ssr.server` path (temporary)
+2. **Changed Clerk import** to deprecated `ssr.server` path (temporary workaround)
 3. **Lazy initialization pattern** for all Sanity clients
 4. **Token sanitization** for API tokens
 5. **Function calls instead of direct exports** for project details
@@ -168,7 +187,20 @@ SITE_URL=http://localhost:5175
 ```
 
 ### For Vercel Production
+
 Ensure all the above variables are set in Vercel dashboard. The non-VITE prefixed server-side vars are required for SSR.
+
+**Important:** When setting env vars in Vercel, ensure there are no trailing spaces or newlines - these can cause authentication failures.
+
+---
+
+## Key Lessons Learned
+
+1. **Avoid module-level initialization** in serverless environments - use lazy initialization patterns
+2. **Avoid Proxy objects** for Sanity clients in production - use direct function calls
+3. **Always sanitize env vars** from Vercel (trim whitespace)
+4. **Duplicate env vars** with both `VITE_` and non-prefixed versions for SSR compatibility
+5. **Test production builds locally** before deploying when making infrastructure changes
 
 ---
 
