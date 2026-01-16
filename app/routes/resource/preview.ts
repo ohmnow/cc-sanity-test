@@ -1,7 +1,7 @@
 import {validatePreviewUrl} from '@sanity/preview-url-secret'
 import {type ActionFunction, data, redirect} from 'react-router'
 
-import {client} from '~/sanity/client'
+import {getClient} from '~/sanity/client'
 import {commitSession, destroySession, getSession} from '~/sessions'
 
 import type {Route} from './+types/preview'
@@ -27,6 +27,7 @@ export const loader = async ({request}: Route.LoaderArgs) => {
     throw new Response('Preview mode missing token', {status: 401})
   }
 
+  const client = getClient()
   const clientWithToken = client.withConfig({
     token: process.env.SANITY_READ_TOKEN,
   })

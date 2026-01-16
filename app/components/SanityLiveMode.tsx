@@ -1,16 +1,22 @@
 import {useLiveMode} from '@sanity/react-loader'
+import {useMemo} from 'react'
 
-import {client} from '~/sanity/client'
+import {getClient} from '~/sanity/client'
 import {STUDIO_BASEPATH} from '~/sanity/constants'
 
-const liveClient = client.withConfig({
-  stega: {
-    enabled: true,
-    studioUrl: STUDIO_BASEPATH,
-  },
-})
-
 export function SanityLiveMode() {
+  // Create the live client inside the component to ensure lazy initialization works
+  const liveClient = useMemo(
+    () =>
+      getClient().withConfig({
+        stega: {
+          enabled: true,
+          studioUrl: STUDIO_BASEPATH,
+        },
+      }),
+    [],
+  )
+
   useLiveMode({client: liveClient})
 
   return null
